@@ -530,7 +530,7 @@
     <div class="step">
       <div class="step-header"><div class="step-num">1</div><div class="step-title">Быстрый старт</div></div>
       <p>Открой <a href="https://t.me/safeout_dates_bot" target="_blank" rel="noopener">@safeout_dates_bot</a>, нажми <strong>Start</strong>, выбери язык и добавь хотя бы одного доверенного контакта — <code>/contacts</code> → <strong>➕ Добавить контакт</strong>.</p>
-      <p>Бот спросит имя, телефон и email — всё, кроме имени, можно пропустить командой <code>/skip</code>. В конце пришлёт <strong>ссылку-приглашение</strong>, которую нужно переслать этому человеку. Telegram не разрешает боту писать тем, кто сам никогда его не запускал, поэтому без перехода по ссылке и нажатия Start бот физически не сможет отправить контакту сообщение в случае тревоги.</p>
+      <p>Бот спросит имя, телефон, email и ник в Telegram — всё, кроме имени, можно пропустить командой <code>/skip</code>. Ник сразу пригодится в кнопке «Позвонить контакту» во время свидания как рабочая ссылка на его Telegram. В конце бот пришлёт <strong>ссылку-приглашение</strong>, которую нужно переслать этому человеку. Telegram не разрешает боту писать тем, кто сам никогда его не запускал, поэтому без перехода по ссылке и нажатия Start бот физически не сможет отправить контакту сообщение в случае тревоги.</p>
     </div>
 
     <div class="step">
@@ -689,9 +689,15 @@
           <div class="bubble">/skip</div></div>
 
         <div class="msg bot"><div class="avatar">🛡</div>
+          <div class="bubble">Ник в Telegram (без @)? Или /skip</div></div>
+
+        <div class="msg user"><div class="avatar">👤</div>
+          <div class="bubble">masha_example</div></div>
+
+        <div class="msg bot"><div class="avatar">🛡</div>
           <div class="bubble">
             ✅ Контакт <strong>Маша</strong> сохранён!<br>
-            📱 +79161234567<br><br>
+            📱 +79161234567 · 💬 @masha_example<br><br>
             Чтобы я могла написать Маше в Telegram, отправь ей ссылку-приглашение — как только она нажмёт «Старт», я подключу её автоматически.
             <div class="btns">
               <span class="btn ghost">➕ Добавить ещё</span>

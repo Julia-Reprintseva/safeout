@@ -482,7 +482,9 @@ async def sc_action(callback: CallbackQuery, db: AsyncSession, lang: str):
             channels = []
             if c.phone:
                 channels.append(f"📱 {c.phone}")
-            if c.telegram_id:
+            if c.telegram_username:
+                channels.append(f'💬 <a href="https://t.me/{c.telegram_username}">@{c.telegram_username}</a>')
+            elif c.telegram_id:
                 channels.append(f'💬 <a href="tg://user?id={c.telegram_id}">Telegram</a>')
             if not channels:
                 channels = [{

@@ -19,6 +19,7 @@ class AddContact(StatesGroup):
     name = State()
     phone = State()
     email = State()
+    username = State()
 
 
 @router.message(Command("contacts"))
@@ -38,8 +39,10 @@ async def cmd_contacts(message: Message, db: AsyncSession, lang: str):
                 channels.append(f"📱 {c.phone}")
             if c.email:
                 channels.append(f"✉️ {c.email}")
+            if c.telegram_username:
+                channels.append(f"💬 @{c.telegram_username}")
             if c.telegram_id:
-                channels.append("💬 Telegram")
+                channels.append(t("contact_connected", lang))
             elif c.invite_token:
                 channels.append(t("contact_pending", lang))
             text += f"• {c.name}: {', '.join(channels)}\n"
@@ -72,8 +75,17 @@ async def contact_phone(message: Message, state: FSMContext, lang: str):
 
 
 @router.message(AddContact.email)
-async def contact_email(message: Message, state: FSMContext, db: AsyncSession, lang: str):
+async def contact_email(message: Message, state: FSMContext, lang: str):
     value = None if message.text.strip().lower() in ("/skip", "skip") else message.text.strip()
+    await state.update_data(email=value)
+    await message.answer(t("ask_contact_username", lang))
+    await state.set_state(AddContact.username)
+
+
+@router.message(AddContact.username)
+async def contact_username(message: Message, state: FSMContext, db: AsyncSession, lang: str):
+    raw = message.text.strip()
+    username = None if raw.lower() in ("/skip", "skip") else raw.lstrip("@")
     data = await state.get_data()
 
     # Count existing contacts for priority
@@ -82,15 +94,18 @@ async def contact_email(message: Message, state: FSMContext, db: AsyncSession, l
     )
     count = len(result.scalars().all())
 
-    # A bot can't message a user who has never started a chat with it, so a
-    # typed username/ID isn't reliable — send an invite deep-link instead;
-    # telegram_id gets filled in automatically once they press Start.
+    # telegram_username is just a label — it lets us show a t.me/<username>
+    # link (e.g. in the "call this contact" action) even before they connect.
+    # It does NOT let the bot message them: a bot can't message a user who
+    # has never started a chat with it, so we still send an invite deep-link
+    # and fill telegram_id in automatically once they press Start.
     invite_token = secrets.token_urlsafe(16)
     contact = TrustedContact(
         user_id=message.from_user.id,
         name=data["name"],
         phone=data.get("phone"),
-        email=value,
+        email=data.get("email"),
+        telegram_username=username,
         telegram_id=None,
         invite_token=invite_token,
         priority=count + 1,

@@ -61,12 +61,14 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_contact_name": "Как зовут этого человека?",
         "ask_contact_phone": "Номер телефона (с кодом страны, например +79001234567)? Или /skip",
         "ask_contact_email": "Email? Или /skip",
+        "ask_contact_username": "Ник в Telegram (без @)? Или /skip",
         "contact_saved": "✅ Контакт {name} сохранён!",
         "contact_invite_link": (
             "Чтобы я могла написать {name} в Telegram, отправь ей эту ссылку — "
             "как только она нажмёт «Старт», я подключу её автоматически:\n{link}"
         ),
         "contact_pending": "⏳ ждём подключения в Telegram",
+        "contact_connected": "✅ подключён(а) в Telegram",
         "trust_link_connected": "✅ Готово! Теперь я напишу тебе сюда, если {name} не выйдет на связь во время свидания.",
         "trust_link_owner_notified": "✅ {name} подключилась как доверенный контакт в Telegram!",
         "trust_link_invalid": "Эта ссылка недействительна или уже использована.",
@@ -131,12 +133,14 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_contact_name": "What's this person's name?",
         "ask_contact_phone": "Phone number (with country code, e.g. +447911123456)? Or /skip",
         "ask_contact_email": "Email? Or /skip",
+        "ask_contact_username": "Telegram username (without @)? Or /skip",
         "contact_saved": "✅ Contact {name} saved!",
         "contact_invite_link": (
             "So I can message {name} on Telegram, send them this link — "
             "once they press Start, I'll connect them automatically:\n{link}"
         ),
         "contact_pending": "⏳ waiting to connect on Telegram",
+        "contact_connected": "✅ connected on Telegram",
         "trust_link_connected": "✅ All set! I'll message you here if {name} doesn't check in during a date.",
         "trust_link_owner_notified": "✅ {name} connected as a trusted contact on Telegram!",
         "trust_link_invalid": "This link is invalid or already used.",
@@ -201,12 +205,14 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_contact_name": "Bu kişinin adı nedir?",
         "ask_contact_phone": "Telefon numarası (ülke koduyla, örn. +905001234567)? Veya /skip",
         "ask_contact_email": "E-posta? Veya /skip",
+        "ask_contact_username": "Telegram kullanıcı adı (@ olmadan)? Veya /skip",
         "contact_saved": "✅ {name} kişisi kaydedildi!",
         "contact_invite_link": (
             "{name} kişisine Telegram'dan yazabilmem için bu bağlantıyı gönder — "
             "Başlat'a bastığında otomatik olarak bağlanacağım:\n{link}"
         ),
         "contact_pending": "⏳ Telegram'da bağlanması bekleniyor",
+        "contact_connected": "✅ Telegram'da bağlandı",
         "trust_link_connected": "✅ Tamam! {name} buluşma sırasında haber vermezse sana buradan yazacağım.",
         "trust_link_owner_notified": "✅ {name} Telegram'da güvenilen kişi olarak bağlandı!",
         "trust_link_invalid": "Bu bağlantı geçersiz veya zaten kullanılmış.",
