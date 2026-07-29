@@ -378,6 +378,27 @@
     font-size: 0.9rem;
   }
 
+  /* ── Footer ── */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+    padding: 28px 20px 40px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .site-footer .footer-contact {
+    font-size: 0.82rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .site-footer .footer-contact a { color: var(--muted); text-decoration: none; }
+  .site-footer .footer-contact a:hover { color: var(--accent); }
+  .site-footer .dot { opacity: .5; }
+  .site-footer .footer-copy { font-size: 0.72rem; }
+
   /* ── Doc / prose (guide + howto tabs) ── */
   .doc h2 {
     font-size: 1.3rem;
@@ -1108,6 +1129,19 @@
     </div>
   </div>
 </div>
+
+<footer class="site-footer">
+  <div class="footer-contact">
+    <a href="tel:+79151541491">+7 91 515 414 91</a>
+    <span class="dot">·</span>
+    <a href="https://t.me/juliareprintseva" target="_blank" rel="noopener">@juliareprintseva</a>
+    <span class="dot">·</span>
+    <a href="mailto:julia.vl.reprintseva@gmail.com">julia.vl.reprintseva@gmail.com</a>
+    <span class="dot">·</span>
+    <a href="https://t.me/juliareprintseva_roman" target="_blank" rel="noopener">Канал об ИИ</a>
+  </div>
+  <div class="footer-copy">© 2026 Юлия Репринцева · SafeOut</div>
+</footer>
 
 <script>
 function toggleTheme() {
