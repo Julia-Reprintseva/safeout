@@ -12,7 +12,6 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "Команды:\n"
             "/newdate — создать новое свидание\n"
             "/contacts — управление доверенными контактами\n"
-            "/sessions — мои свидания\n"
             "/language — сменить язык\n"
             "/help — помощь"
         ),
@@ -27,6 +26,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_return_time": "⏰ Когда планируешь вернуться? (например: 23:00 или через 3 часа)",
         "ask_files": (
             "📎 Отправь фото, скриншоты переписки, голосовые — всё что есть.\n"
+            "Файлы остаются на серверах Telegram, я храню только ссылку на них. "
+            "Увидеть их сможет тот, у кого будет ссылка на страницу тревоги — она приходит только если сработает тревога.\n\n"
             "Когда закончишь, нажми кнопку ниже."
         ),
         "files_done": "Готово с файлами",
@@ -84,7 +85,6 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "Commands:\n"
             "/newdate — create a new date\n"
             "/contacts — manage trusted contacts\n"
-            "/sessions — my dates\n"
             "/language — change language\n"
             "/help — help"
         ),
@@ -99,6 +99,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_return_time": "⏰ When do you plan to be back? (e.g. 23:00 or in 3 hours)",
         "ask_files": (
             "📎 Send photos, chat screenshots, voice messages — anything you have.\n"
+            "Files stay on Telegram's servers, I only keep a link to them. "
+            "They become visible to whoever holds the alert page link — which is only sent out if an alert actually fires.\n\n"
             "When done, press the button below."
         ),
         "files_done": "Done with files",
@@ -156,7 +158,6 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "Komutlar:\n"
             "/newdate — yeni bir buluşma oluştur\n"
             "/contacts — güvenilen kişileri yönet\n"
-            "/sessions — buluşmalarım\n"
             "/language — dil değiştir\n"
             "/help — yardım"
         ),
@@ -171,6 +172,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_return_time": "⏰ Ne zaman geri dönmeyi planlıyorsun? (örn: 23:00 veya 3 saat sonra)",
         "ask_files": (
             "📎 Fotoğraf, sohbet ekran görüntüsü, sesli mesaj — ne varsa gönder.\n"
+            "Dosyalar Telegram sunucularında kalır, sadece bağlantısını saklarım. "
+            "Sadece bir alarm tetiklenirse gönderilen tehlike sayfası bağlantısına sahip olan kişi görebilir.\n\n"
             "Bitirdiğinde aşağıdaki butona bas."
         ),
         "files_done": "Dosyalar tamam",
