@@ -57,7 +57,6 @@ def get_escalation_context(session_id: int) -> dict | None:
                     "date_name": session.date_name,
                     "meeting_place": session.meeting_place,
                     "destination": session.destination,
-                    "hotel_info": session.hotel_info,
                     "car_plate": session.car_plate,
                     "date_profile_url": session.date_profile_url,
                     "contacts": [

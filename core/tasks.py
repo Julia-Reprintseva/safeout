@@ -166,7 +166,6 @@ def _email_html(session_data: dict, url: str, lang: str, org_mode: bool = False)
     date_name = session_data.get("date_name", "")
     car = session_data.get("car_plate", "")
     dest = session_data.get("destination", "")
-    hotel = session_data.get("hotel_info", "")
 
     if lang == "ru":
         intro = (
@@ -185,7 +184,6 @@ def _email_html(session_data: dict, url: str, lang: str, org_mode: bool = False)
     <table>
       <tr><td><b>Место встречи</b></td><td>{place}</td></tr>
       <tr><td><b>Куда едут</b></td><td>{dest}</td></tr>
-      <tr><td><b>Отель/адрес</b></td><td>{hotel}</td></tr>
       <tr><td><b>Человек</b></td><td>{date_name}</td></tr>
       <tr><td><b>Машина</b></td><td>{car}</td></tr>
     </table>

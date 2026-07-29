@@ -64,7 +64,6 @@ async def alert_page(request: Request, token: str):
             "date_profile_url": session.date_profile_url,
             "meeting_place": session.meeting_place,
             "destination": session.destination,
-            "hotel_info": session.hotel_info,
             "car_plate": session.car_plate,
             "extra_info": session.extra_info,
             "expected_return": session.expected_return.strftime("%H:%M %d.%m") if session.expected_return else None,

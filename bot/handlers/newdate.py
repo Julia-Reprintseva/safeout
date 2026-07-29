@@ -3,7 +3,7 @@ FSM flow for creating and running a date session.
 
 States:
   date_name → profile_url → meeting_place → destination →
-  hotel → car → extra → return_time → files → [session starts]
+  car → extra → return_time → files → [session starts]
 """
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -32,7 +32,6 @@ class NewDate(StatesGroup):
     profile_url = State()
     meeting_place = State()
     destination = State()
-    hotel = State()
     car = State()
     extra = State()
     return_time = State()
@@ -109,14 +108,6 @@ async def step_meeting_place(message: Message, state: FSMContext, lang: str):
 async def step_destination(message: Message, state: FSMContext, lang: str):
     val = None if message.text.strip().lower() in SKIP_VALUES else message.text.strip()
     await state.update_data(destination=val)
-    await message.answer(t("ask_hotel", lang))
-    await state.set_state(NewDate.hotel)
-
-
-@router.message(NewDate.hotel)
-async def step_hotel(message: Message, state: FSMContext, lang: str):
-    val = None if message.text.strip().lower() in SKIP_VALUES else message.text.strip()
-    await state.update_data(hotel=val)
     await message.answer(t("ask_car", lang))
     await state.set_state(NewDate.car)
 
@@ -151,7 +142,6 @@ async def step_return_time(message: Message, state: FSMContext, db: AsyncSession
         date_profile_url=data.get("profile_url"),
         meeting_place=data.get("meeting_place"),
         destination=data.get("destination"),
-        hotel_info=data.get("hotel"),
         car_plate=data.get("car"),
         extra_info=data.get("extra"),
         expected_return=return_dt,

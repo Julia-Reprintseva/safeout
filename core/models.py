@@ -52,8 +52,11 @@ class TrustedContact(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"))
     name: Mapped[str] = mapped_column(String(128))
-    phone: Mapped[str | None] = mapped_column(String(32))   # для SMS
-    email: Mapped[str | None] = mapped_column(String(256))  # для email
+    phone: Mapped[str | None] = mapped_column(String(32))
+    email: Mapped[str | None] = mapped_column(String(256))
+    # Just a label for display and manual t.me/<username> links — doesn't by
+    # itself let the bot message this contact (see telegram_id below).
+    telegram_username: Mapped[str | None] = mapped_column(String(64))
     telegram_id: Mapped[int | None] = mapped_column(BigInteger)  # для Telegram
     # Bots can't message a user who never started a chat with them, so a bare
     # username isn't enough — we send this contact an invite deep-link and
@@ -80,7 +83,6 @@ class DateSession(Base):
     date_profile_url: Mapped[str | None] = mapped_column(Text)        # ссылка на профиль
     meeting_place: Mapped[str | None] = mapped_column(Text)           # место встречи
     destination: Mapped[str | None] = mapped_column(Text)             # куда едут
-    hotel_info: Mapped[str | None] = mapped_column(Text)              # отель/адрес ночёвки
     car_plate: Mapped[str | None] = mapped_column(String(32))         # номер машины
     car_description: Mapped[str | None] = mapped_column(String(256))  # марка, цвет
     extra_info: Mapped[str | None] = mapped_column(Text)              # любая доп. информация
