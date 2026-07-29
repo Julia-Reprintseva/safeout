@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#111820">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SafeOut">
+  <title>SafeOut — Скрипт бота</title>
+  <meta name="description" content="Полный сценарий диалогов Telegram-бота безопасности для свиданий с незнакомцами из интернета.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://julia-reprintseva.github.io/safeout/">
+  <meta property="og:title" content="SafeOut — Скрипт бота">
+  <meta property="og:description" content="Полный сценарий диалогов Telegram-бота безопасности для свиданий с незнакомцами из интернета.">
+  <meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}
+  :root {
+    --bg:        #111820;
+    --surface:   #1C2733;
+    --surface2:  #253140;
+    --border:    #2E3E50;
+    --text:      #E8EDF2;
+    --muted:     #7A8FA3;
+    --bot-bg:    #1E3448;
+    --bot-text:  #D4E8FF;
+    --user-bg:   #2A5C3F;
+    --user-text: #C8F0D8;
+    --red:       #E53935;
+    --red-soft:  #FF6B68;
+    --amber:     #F5A623;
+    --green:     #3DB96A;
+    --blue:      #4A9EE8;
+    --accent:    #4A9EE8;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg:       #F0F4F8;
+      --surface:  #FFFFFF;
+      --surface2: #E8EEF5;
+      --border:   #C8D6E5;
+      --text:     #1A2332;
+      --muted:    #6B7E94;
+      --bot-bg:   #E3EFF9;
+      --bot-text: #1A3A5C;
+      --user-bg:  #D4F0E2;
+      --user-text:#1A3D2A;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg:       #F0F4F8;
+    --surface:  #FFFFFF;
+    --surface2: #E8EEF5;
+    --border:   #C8D6E5;
+    --text:     #1A2332;
+    --muted:    #6B7E94;
+    --bot-bg:   #E3EFF9;
+    --bot-text: #1A3A5C;
+    --user-bg:  #D4F0E2;
+    --user-text:#1A3D2A;
+  }
+  :root[data-theme="dark"] {
+    --bg:        #111820;
+    --surface:   #1C2733;
+    --surface2:  #253140;
+    --border:    #2E3E50;
+    --text:      #E8EDF2;
+    --muted:     #7A8FA3;
+    --bot-bg:    #1E3448;
+    --bot-text:  #D4E8FF;
+    --user-bg:   #2A5C3F;
+    --user-text: #C8F0D8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .logo {
+    width: 44px; height: 44px;
+    background: var(--red);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+  .header-text p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .theme-btn {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    transition: color .2s;
+  }
+  .theme-btn:hover { color: var(--text); }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  .toc h2 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .toc ol {
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .toc li { font-size: 0.875rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ── Scenario block ── */
+  .scenario {
+    margin-bottom: 48px;
+  }
+  .scenario-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .scenario-num {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .scenario-num.red   { background: var(--red); }
+  .scenario-num.amber { background: var(--amber); color: #111; }
+  .scenario-num.green { background: var(--green); }
+  .scenario-title {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .scenario-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── Chat bubbles ── */
+  .chat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 90%;
+  }
+  .msg.bot  { align-self: flex-start; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.note { align-self: center; max-width: 100%; }
+
+  .avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .bot .avatar  { background: var(--red); }
+  .user .avatar { background: #3D5168; }
+
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    line-height: 1.55;
+  }
+  .bot .bubble {
+    background: var(--bot-bg);
+    color: var(--bot-text);
+    border-top-left-radius: 4px;
+  }
+  .user .bubble {
+    background: var(--user-bg);
+    color: var(--user-text);
+    border-top-right-radius: 4px;
+  }
+  .note .bubble {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-style: italic;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* buttons inside bubbles */
+  .btns {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+  }
+  .btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid;
+    width: fit-content;
+  }
+  .btn.primary  { background: var(--accent);  color: #fff; border-color: var(--accent); }
+  .btn.red      { background: var(--red);     color: #fff; border-color: var(--red); }
+  .btn.ghost    { background: transparent;    color: var(--bot-text); border-color: var(--border); }
+  .btn.green    { background: var(--green);   color: #fff; border-color: var(--green); }
+  .btn.amber    { background: var(--amber);   color: #111; border-color: var(--amber); }
+
+  /* checklist inside bubble */
+  .checklist { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .cl-item   { font-size: 0.82rem; display: flex; align-items: flex-start; gap: 6px; }
+  .cl-item .icon { flex-shrink: 0; width: 16px; }
+  .cl-section { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .08em;
+                color: var(--muted); margin-top: 8px; margin-bottom: 2px; }
+
+  /* divider label between steps */
+  .step-label {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--muted); font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: .1em;
+    margin: 6px 0;
+  }
+  .step-label::before,
+  .step-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* escalation chain */
+  .escalation {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 0.825rem;
+  }
+  .escalation h4 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--red-soft);
+    margin-bottom: 8px;
+  }
+  .esc-row {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 5px 0; border-bottom: 1px solid var(--border);
+  }
+  .esc-row:last-child { border-bottom: none; }
+  .esc-time {
+    font-size: 0.72rem; color: var(--muted);
+    min-width: 70px; padding-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .esc-action { flex: 1; line-height: 1.45; }
+  .esc-level {
+    font-size: 0.65rem; padding: 2px 7px; border-radius: 10px;
+    font-weight: 600; flex-shrink: 0; margin-top: 2px;
+  }
+  .lvl1 { background: #F5A62320; color: var(--amber); }
+  .lvl2 { background: #E5393520; color: var(--red-soft); }
+  .lvl3 { background: #E5393540; color: var(--red); }
+
+  /* live bot banner */
+  .live-banner {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 14px 20px 0;
+  }
+  .live-banner a {
+    display: block;
+    background: var(--green);
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">🛡</div>
+  <div class="header-text">
+    <h1>SafeOut — Скрипт бота</h1>
+    <p>Полный сценарий диалогов · RU · Telegram Bot</p>
+  </div>
+  <button class="theme-btn" onclick="toggleTheme()">☀︎ / ☾</button>
+</header>
+
+<div class="live-banner">
+  <a href="https://t.me/safeout_dates_bot" target="_blank" rel="noopener">💬 Открыть бота в Telegram — @safeout_dates_bot</a>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>Сценарии</h2>
+    <ol>
+      <li><a href="#s1">Первый запуск — /start</a></li>
+      <li><a href="#s2">Добавление доверенного контакта — /contacts</a></li>
+      <li><a href="#s3">Создание свидания — /newdate</a></li>
+      <li><a href="#s4">Чек-лист безопасности перед свиданием</a></li>
+      <li><a href="#s5">Пинги во время свидания — /status</a></li>
+      <li><a href="#s6">Тревога — нет ответа на пинг</a></li>
+      <li><a href="#s7">Экстренный SOS</a></li>
+      <li><a href="#s8">Безопасное возвращение</a></li>
+    </ol>
+  </div>
+
+  <!-- ─── 1. START ─── -->
+  <section class="scenario" id="s1">
+    <div class="scenario-header">
+      <div class="scenario-num">1</div>
+      <div>
+        <div class="scenario-title">Первый запуск — /start</div>
+        <div class="scenario-sub">Пользователь впервые открывает бота</div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">/start</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          👋 Привет! Я <strong>SafeOut</strong> — бот безопасности для свиданий с незнакомцами из интернета.<br><br>
+          Перед свиданием ты можешь сохранить всю информацию о человеке: имя, фото, номер машины, маршрут, переписку. Если ты не выйдешь на связь вовремя — я немедленно оповещу твоих близких.<br><br>
+          <strong>Команды:</strong><br>
+          /newdate — создать свидание<br>
+          /contacts — доверенные контакты<br>
+          /checklist — чек-лист безопасности<br>
+          /status — проверка во время свидания<br>
+          /language — сменить язык
+          <div class="btns">
+            <span class="btn ghost">🌐 Выбрать язык</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-label">выбор языка</div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          Выбери язык / Choose language / Dil seçin:
+          <div class="btns">
+            <span class="btn ghost">🇷🇺 Русский</span>
+            <span class="btn ghost">🇬🇧 English</span>
+            <span class="btn ghost">🇹🇷 Türkçe</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">🇷🇺 Русский</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">✅ Язык установлен: Русский</div></div>
+    </div>
+  </section>
+
+  <!-- ─── 2. CONTACTS ─── -->
+  <section class="scenario" id="s2">
+    <div class="scenario-header">
+      <div class="scenario-num">2</div>
+      <div>
+        <div class="scenario-title">Добавление контакта — /contacts</div>
+        <div class="scenario-sub">Нужно добавить хотя бы одного до свидания</div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">/contacts</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          У тебя пока нет доверенных контактов.<br>
+          Добавь хотя бы одного — именно им придёт оповещение если ты не выйдешь на связь.
+          <div class="btns">
+            <span class="btn primary">➕ Добавить контакт</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">➕ Добавить контакт</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">Как зовут этого человека?</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">Маша</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">Номер телефона для SMS (с кодом страны, например +79001234567)? Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">+79161234567</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">Email? Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">/skip</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">Telegram username или ID? Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">@masha_example</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">✅ Контакт <strong>Маша</strong> сохранён!<br>
+        📱 +79161234567 · 💬 Telegram<br><br>
+        Можешь добавить ещё контактов — при тревоге я оповещу всех по очереди.
+          <div class="btns">
+            <span class="btn ghost">➕ Добавить ещё</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 3. NEW DATE ─── -->
+  <section class="scenario" id="s3">
+    <div class="scenario-header">
+      <div class="scenario-num">3</div>
+      <div>
+        <div class="scenario-title">Создание свидания — /newdate</div>
+        <div class="scenario-sub">Сбор всей информации о встрече и человеке</div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">/newdate</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">📋 Создаём новое свидание. Как зовут человека или его ник в приложении?</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">Артём, Тиндер</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">🔗 Ссылка на его профиль (Tinder, ВКонтакте, Instagram…)? Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">https://vk.com/artem_example</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">📍 Где вы встречаетесь? (адрес или название места)</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">Кофейня «Друзья», Большая Садовая 5, Москва</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">🗺 Куда планируете поехать дальше? (кафе, кино, его место — всё что знаешь) Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">Сказал что покажет выставку в Центре современного искусства на Зубовском</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">🏨 Название отеля или адрес, если планируешь ночевать? Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">/skip</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">🚗 Номер и описание машины (марка, цвет, гос. номер)? Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">Тёмно-синяя Kia Rio, А123ВГ77</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">📝 Любая другая важная информация? (его адрес, копия документов, особые приметы) Или /skip</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">Прислал фото паспорта, сохраняю скрин</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">⏰ Когда планируешь вернуться? (например: 23:00 или через 4 часа)</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">23:00</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          📎 Отправь всё что есть — фото человека, скриншоты переписки, фото документов, голосовые. Всё это будет отправлено близким и в службы помощи если понадобится.<br><br>
+          Когда закончишь — нажми кнопку.
+          <div class="btns">
+            <span class="btn ghost">✅ Готово с файлами</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">📷 [фото из переписки]<br>📷 [скриншот профиля]<br>📄 [фото паспорта]</div></div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">✅ Готово с файлами</div></div>
+    </div>
+  </section>
+
+  <!-- ─── 4. CHECKLIST ─── -->
+  <section class="scenario" id="s4">
+    <div class="scenario-header">
+      <div class="scenario-num amber">4</div>
+      <div>
+        <div class="scenario-title">Чек-лист безопасности перед свиданием</div>
+        <div class="scenario-sub">Показывается автоматически после загрузки файлов</div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          📋 <strong>Чек-лист безопасности SafeOut</strong><br>
+          <span style="font-size:.8rem;color:var(--muted)">✅ заполнено автоматически &nbsp;·&nbsp; ⬜️ отметь вручную &nbsp;·&nbsp; <strong>(!)</strong> обязательно</span>
+          <div class="checklist">
+            <div class="cl-section">👤 Информация о человеке</div>
+            <div class="cl-item"><span class="icon">✅</span> Ты знаешь его настоящее имя</div>
+            <div class="cl-item"><span class="icon">✅</span> Нашла его в соцсетях (ссылка сохранена)</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Вы общались голосом или видео <strong>(!)</strong></div>
+            <div class="cl-item"><span class="icon">✅</span> Скриншоты переписки сохранены</div>
+            <div class="cl-item"><span class="icon">✅</span> Есть копия его документов</div>
+            <div class="cl-item"><span class="icon">✅</span> Номер и марка его машины сохранены</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Ты знаешь его домашний адрес</div>
+            <div class="cl-section">📍 Место и маршрут</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Первая встреча в публичном месте <strong>(!)</strong></div>
+            <div class="cl-item"><span class="icon">✅</span> Адрес встречи сохранён</div>
+            <div class="cl-item"><span class="icon">✅</span> Маршрут / куда едете сохранён</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Ты знаешь как добраться домой самостоятельно <strong>(!)</strong></div>
+            <div class="cl-section">👥 Близкие в курсе</div>
+            <div class="cl-item"><span class="icon">✅</span> Контакт добавлен (Маша)</div>
+            <div class="cl-item"><span class="icon">✅</span> Время возвращения установлено (23:00)</div>
+            <div class="cl-section">📱 Телефон</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Телефон заряжен от 50% <strong>(!)</strong></div>
+            <div class="cl-item"><span class="icon">⬜️</span> Мобильный интернет включён <strong>(!)</strong></div>
+            <div class="cl-item"><span class="icon">⬜️</span> Знаешь номер экстренной помощи</div>
+            <div class="cl-section">🚨 Экстренный план</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Есть причина уйти если почувствуешь дискомфорт</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Знаешь как отправить SOS одним нажатием</div>
+          </div>
+          <div class="btns" style="margin-top:12px">
+            <span class="btn amber">⚠️ Заполни обязательные пункты (!) чтобы начать</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-label">пользователь отмечает пункты вручную</div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          📋 <strong>Чек-лист безопасности SafeOut</strong>
+          <div class="checklist">
+            <div class="cl-item"><span class="icon">✅</span> Вы общались голосом или видео</div>
+            <div class="cl-item"><span class="icon">✅</span> Первая встреча в публичном месте</div>
+            <div class="cl-item"><span class="icon">✅</span> Телефон заряжен</div>
+            <div class="cl-item"><span class="icon">✅</span> Мобильный интернет включён</div>
+            <div class="cl-item" style="opacity:.6"><span class="icon">⬜️</span> Знаешь номер экстренной помощи</div>
+            <div class="cl-item" style="opacity:.6"><span class="icon">⬜️</span> Есть причина уйти если…</div>
+          </div>
+          <div class="btns" style="margin-top:12px">
+            <span class="btn green">▶️ Всё готово — начать свидание</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">▶️ Всё готово — начать свидание</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          ✅ <strong>Свидание начато.</strong> Буду проверять тебя каждые 15 минут.<br>
+          Если не ответишь — сразу оповещу Машу.<br><br>
+          Хорошего вечера 💙
+          <div class="btns">
+            <span class="btn ghost">🏠 Я дома, всё хорошо</span>
+            <span class="btn red">🆘 SOS — нужна помощь</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 5. PINGS ─── -->
+  <section class="scenario" id="s5">
+    <div class="scenario-header">
+      <div class="scenario-num">5</div>
+      <div>
+        <div class="scenario-title">Пинги во время свидания</div>
+        <div class="scenario-sub">Каждые 15 минут — краткая проверка с 3 вопросами</div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="step-label">через 15 минут после старта</div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          👋 <strong>Быстрая проверка — ответь честно:</strong><br><br>
+          1. Всё идёт как планировали — место, маршрут, человек?<br>
+          2. Ты чувствуешь себя комфортно и можешь уйти когда захочешь?<br>
+          3. Его поведение тебя не настораживает?
+          <div class="btns">
+            <span class="btn green">✅ Всё хорошо</span>
+            <span class="btn amber">⚠️ Есть проблема</span>
+            <span class="btn red">🆘 SOS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">✅ Всё хорошо</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">✅ Отлично! Следующая проверка через 15 минут.</div></div>
+
+      <div class="step-label">пользователь нажала «Есть проблема»</div>
+
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">⚠️ Есть проблема</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          Хорошо, не волнуйся. Что именно тебя беспокоит?
+          <div class="btns">
+            <span class="btn ghost">📋 Пройти полный чек-лист</span>
+            <span class="btn ghost">📞 Позвонить Маше прямо сейчас</span>
+            <span class="btn ghost">📝 Записать и продолжить — я слежу</span>
+            <span class="btn red">🆘 SOS — нужна срочная помощь</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-label">полный чек-лист во время свидания</div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          📋 <strong>Чек-лист — сейчас на свидании</strong><br>
+          <span style="font-size:.8rem;color:var(--muted)">Ответь честно на каждый вопрос</span>
+          <div class="checklist">
+            <div class="cl-section">📍 Реальность совпадает с обещанным</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Это тот же человек, что на фото</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Вы встретились там, где договаривались</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Маршрут совпадает с тем, что планировали</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Он не пытается изменить план без твоего согласия</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Машина та же, что ты записала</div>
+            <div class="cl-section">💛 Твои ощущения прямо сейчас</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Ты чувствуешь себя комфортно</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Ты можешь свободно уйти когда захочешь</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Тебя ничего не беспокоит</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Ты в сознании и понимаешь что происходит</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Ты знаешь где находишься</div>
+            <div class="cl-section">🔍 Его поведение</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Он уважает твои границы</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Он не настаивает на алкоголе или других веществах</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Он не забирал твой телефон или документы</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Он не угрожал тебе и не запугивал</div>
+            <div class="cl-item"><span class="icon">⬜️</span> Он не пытается изолировать тебя от людей</div>
+          </div>
+          <div class="btns" style="margin-top:12px">
+            <span class="btn primary">Готово — показать результат</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-label">результат: 3 красных флага</div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble" style="border-left:3px solid var(--red);border-radius:4px 16px 16px 16px">
+          🚨 <strong>Серьёзные тревожные сигналы (3 пункта).</strong><br><br>
+          Твоя безопасность важнее всего. Попробуй оказаться среди людей — зайди в кафе, магазин, выйди на улицу.<br><br>
+          Что делаем?
+          <div class="btns">
+            <span class="btn ghost">📞 Позвонить Маше прямо сейчас</span>
+            <span class="btn ghost">📝 Записать и продолжить — я слежу</span>
+            <span class="btn red">🆘 SOS — нужна срочная помощь</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 6. NO RESPONSE ─── -->
+  <section class="scenario" id="s6">
+    <div class="scenario-header">
+      <div class="scenario-num amber">6</div>
+      <div>
+        <div class="scenario-title">Тревога — нет ответа на пинг</div>
+        <div class="scenario-sub">Автоматическая эскалация по уровням</div>
+      </div>
+    </div>
+
+    <div class="escalation">
+      <h4>Цепочка эскалации</h4>
+      <div class="esc-row">
+        <div class="esc-time">0 мин</div>
+        <div class="esc-action">Пинг отправлен. Ждём ответа.</div>
+        <div class="esc-level lvl1">Уровень 0</div>
+      </div>
+      <div class="esc-row">
+        <div class="esc-time">+5 мин</div>
+        <div class="esc-action">Нет ответа — повторный пинг: «Ты в порядке? Пожалуйста ответь»</div>
+        <div class="esc-level lvl1">Уровень 0</div>
+      </div>
+      <div class="esc-row">
+        <div class="esc-time">+15 мин</div>
+        <div class="esc-action">SMS + Telegram всем доверенным контактам. Ссылка на страницу с данными и картой.</div>
+        <div class="esc-level lvl1">Уровень 1</div>
+      </div>
+      <div class="esc-row">
+        <div class="esc-time">+30 мин</div>
+        <div class="esc-action">Если контакты не подтвердили получение — email в фонды помощи (Лиза Алерт, кризисные центры).</div>
+        <div class="esc-level lvl2">Уровень 2</div>
+      </div>
+    </div>
+
+    <div class="chat">
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          ⚠️ <strong>Маша, привет.</strong><br><br>
+          Юля не отвечает на проверки уже 15 минут.<br>
+          Место встречи: Кофейня «Друзья», Большая Садовая 5<br>
+          Человек: Артём (ВКонтакте)<br><br>
+          Пожалуйста свяжись с ней.
+          <div class="btns">
+            <span class="btn primary">🔗 Открыть все данные и геолокацию</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg note"><div class="bubble">↑ это SMS и Telegram Маше · контакт открывает ссылку</div></div>
+
+      <div class="step-label">веб-страница для контакта</div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          На странице Маша видит:<br>
+          🗺 Карта с последней геолокацией<br>
+          👤 Артём · ссылка на ВКонтакте<br>
+          🚗 Kia Rio тёмно-синяя · А123ВГ77<br>
+          📍 Кофейня «Друзья» → выставка на Зубовском<br>
+          📷 Фото, скриншоты переписки, фото паспорта<br>
+          ⏰ Ожидалась в 23:00
+          <div class="btns">
+            <span class="btn green">✅ Я получила, связываюсь с ней</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 7. SOS ─── -->
+  <section class="scenario" id="s7">
+    <div class="scenario-header">
+      <div class="scenario-num red">7</div>
+      <div>
+        <div class="scenario-title">Экстренный SOS</div>
+        <div class="scenario-sub">Пользователь нажимает кнопку SOS — всё сразу</div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">🆘 SOS — нужна помощь</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble" style="border-left:3px solid var(--red);border-radius:4px 16px 16px 16px">
+          🆘 <strong>SOS активирован.</strong><br><br>
+          Прямо сейчас оповещаю всех твоих близких. Они получат ссылку с твоими данными и геолокацией.<br><br>
+          Попробуй оказаться среди людей — кафе, магазин, улица, другие люди рядом.<br><br>
+          Я рядом. Всё будет хорошо.
+        </div>
+      </div>
+
+      <div class="escalation">
+        <h4>При SOS — немедленно и одновременно</h4>
+        <div class="esc-row">
+          <div class="esc-time">Сразу</div>
+          <div class="esc-action">SMS + Telegram всем доверенным контактам с пометкой SOS</div>
+          <div class="esc-level lvl1">Уровень 1</div>
+        </div>
+        <div class="esc-row">
+          <div class="esc-time">Сразу</div>
+          <div class="esc-action">Email в Лиза Алерт и кризисные центры с полным пакетом данных</div>
+          <div class="esc-level lvl2">Уровень 2</div>
+        </div>
+        <div class="esc-row">
+          <div class="esc-time">Сразу</div>
+          <div class="esc-action">Шаблон заявления в полицию с данными о человеке и машине</div>
+          <div class="esc-level lvl3">Уровень 3</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 8. SAFE RETURN ─── -->
+  <section class="scenario" id="s8">
+    <div class="scenario-header">
+      <div class="scenario-num green">8</div>
+      <div>
+        <div class="scenario-title">Безопасное возвращение</div>
+        <div class="scenario-sub">Пользователь нажимает «Я дома» или пишет об этом</div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="msg user"><div class="avatar">👤</div>
+        <div class="bubble">🏠 Я дома, всё хорошо</div></div>
+
+      <div class="msg bot"><div class="avatar">🛡</div>
+        <div class="bubble">
+          🏠 <strong>Рада что ты дома!</strong><br><br>
+          Свидание завершено. Все данные сохранены — если понадобятся, они останутся в твоей истории.<br><br>
+          Береги себя 💙
+        </div>
+      </div>
+
+      <div class="msg note"><div class="bubble">Контакты автоматически получают сообщение: «Юля вернулась домой в 22:43. Всё хорошо ✅»</div></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function toggleTheme() {
+  const root = document.documentElement;
+  const cur = root.getAttribute('data-theme');
+  root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+}
+</script>
+
+</body></html>

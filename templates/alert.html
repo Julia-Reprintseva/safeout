@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeOut — Alert</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #f5f5f5; color: #1a1a1a; }
+    .header { background: #e53935; color: white; padding: 20px 24px; }
+    .header h1 { font-size: 22px; font-weight: 700; }
+    .header p { font-size: 14px; opacity: .85; margin-top: 4px; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px;
+                    font-size: 13px; font-weight: 600; margin-top: 8px; }
+    .sos { background: #fff; color: #e53935; }
+    .alert { background: #fff3; color: #fff; }
+    .container { max-width: 640px; margin: 0 auto; padding: 16px; }
+    .card { background: white; border-radius: 12px; padding: 20px;
+            margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .5px;
+               color: #888; margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .label { font-size: 13px; color: #666; min-width: 120px; }
+    .value { font-size: 14px; font-weight: 500; }
+    .value a { color: #1976d2; text-decoration: none; }
+    #map { height: 260px; border-radius: 10px; overflow: hidden; }
+    .no-location { height: 80px; display: flex; align-items: center;
+                   justify-content: center; color: #aaa; font-size: 14px; }
+    .files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    .files-grid img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+    .ack-btn { display: block; width: 100%; padding: 16px;
+               background: #43a047; color: white; border: none; border-radius: 10px;
+               font-size: 17px; font-weight: 600; cursor: pointer; text-align: center; }
+    .ack-btn:disabled { background: #aaa; }
+    .acked { background: #e8f5e9; color: #2e7d32; border-radius: 10px;
+             padding: 16px; text-align: center; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🆘 SafeOut</h1>
+  <p>
+    {% if lang == "ru" %}
+      {{ user_name }} не выходит на связь
+    {% elif lang == "tr" %}
+      {{ user_name }} yanıt vermiyor
+    {% else %}
+      {{ user_name }} is not responding
+    {% endif %}
+  </p>
+  <span class="status-badge {{ 'sos' if is_sos else 'alert' }}">
+    {% if is_sos %}🆘 SOS{% else %}⚠️ ALERT{% endif %}
+  </span>
+</div>
+
+<div class="container">
+
+  <!-- Map -->
+  <div class="card">
+    <h2>{% if lang == "ru" %}Геолокация{% elif lang == "tr" %}Konum{% else %}Location{% endif %}</h2>
+    {% if lat and lon %}
+      <div id="map"></div>
+    {% else %}
+      <div class="no-location">
+        {% if lang == "ru" %}Геолокация недоступна{% elif lang == "tr" %}Konum mevcut değil{% else %}Location unavailable{% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Date details -->
+  <div class="card">
+    <h2>{% if lang == "ru" %}Данные о свидании{% elif lang == "tr" %}Randevu bilgileri{% else %}Date details{% endif %}</h2>
+    {% macro row(label, value) %}
+      {% if value %}
+      <div class="row">
+        <span class="label">{{ label }}</span>
+        <span class="value">{{ value }}</span>
+      </div>
+      {% endif %}
+    {% endmacro %}
+    {{ row("Человек / Person", date_name) }}
+    {% if date_profile_url %}
+    <div class="row">
+      <span class="label">Профиль / Profile</span>
+      <span class="value"><a href="{{ date_profile_url }}" target="_blank">открыть / open</a></span>
+    </div>
+    {% endif %}
+    {{ row("Место встречи", meeting_place) }}
+    {{ row("Куда едут", destination) }}
+    {{ row("Отель / адрес", hotel_info) }}
+    {{ row("Машина", car_plate) }}
+    {{ row("Доп. инфо", extra_info) }}
+    {% if expected_return %}
+    {{ row("Ждали в", expected_return) }}
+    {% endif %}
+  </div>
+
+  <!-- Files -->
+  {% if files %}
+  <div class="card">
+    <h2>{% if lang == "ru" %}Файлы и фото{% elif lang == "tr" %}Dosyalar{% else %}Files & photos{% endif %}</h2>
+    <div class="files-grid">
+      {% for f in files %}
+        <a href="{{ f.url }}" target="_blank">
+          {% if f.is_image %}
+            <img src="{{ f.url }}" alt="photo" loading="lazy">
+          {% else %}
+            <div style="background:#f0f0f0;height:100px;border-radius:8px;display:flex;
+                        align-items:center;justify-content:center;font-size:12px;color:#666;">
+              📄 {{ f.name }}
+            </div>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Acknowledge -->
+  <div class="card">
+    {% if acknowledged %}
+      <div class="acked">
+        ✅ {% if lang == "ru" %}Вы подтвердили получение{% elif lang == "tr" %}Aldığınızı onayladınız{% else %}You confirmed receipt{% endif %}
+      </div>
+    {% else %}
+      <button class="ack-btn" onclick="acknowledge()">
+        {% if lang == "ru" %}✅ Я получил(а), связываюсь с ней{% elif lang == "tr" %}✅ Aldım, onunla iletişime geçiyorum{% else %}✅ I received this, contacting her{% endif %}
+      </button>
+    {% endif %}
+  </div>
+
+</div>
+
+{% if lat and lon %}
+<script>
+  function initMap() {
+    const pos = { lat: {{ lat }}, lng: {{ lon }} };
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: pos, zoom: 15,
+      disableDefaultUI: true, zoomControl: true,
+    });
+    new google.maps.Marker({ position: pos, map, title: "Last known location" });
+  }
+</script>
+<script async src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}&callback=initMap"></script>
+{% endif %}
+
+<script>
+async function acknowledge() {
+  const btn = document.querySelector(".ack-btn");
+  btn.disabled = true;
+  await fetch("{{ ack_url }}", { method: "POST" });
+  btn.parentElement.innerHTML = '<div class="acked">✅ {% if lang == "ru" %}Подтверждено{% else %}Confirmed{% endif %}</div>';
+}
+</script>
+</body>
+</html>
