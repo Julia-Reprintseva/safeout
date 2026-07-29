@@ -8,7 +8,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "welcome": (
             "👋 Привет! Я SafeOut — бот безопасности для свиданий с незнакомцами.\n\n"
             "Перед свиданием я помогу сохранить всю информацию о человеке и месте встречи. "
-            "Если ты не выйдешь на связь — сразу оповещу твоих близких.\n\n"
+            "Если ты не выйдешь на связь — оповещу доверенные контакты, которые подключились ко мне в Telegram.\n\n"
             "Команды:\n"
             "/newdate — создать новое свидание\n"
             "/contacts — управление доверенными контактами\n"
@@ -39,7 +39,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "start_date_btn": "▶️ Начать свидание",
         "session_started": (
             "✅ Свидание начато. Буду пинговать тебя каждые {interval} минут.\n"
-            "Если не ответишь — оповещу твоих близких.\n\n"
+            "Если не ответишь — оповещу подключённые доверенные контакты.\n\n"
             "В любой момент нажми 🆘 SOS если нужна срочная помощь."
         ),
         "ping_message": "👋 Всё хорошо? Ответь, чтобы я знал(а) что ты в безопасности.",
@@ -47,8 +47,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ping_sos_btn": "🆘 SOS — нужна помощь",
         "ping_ok_response": "✅ Отлично! Следующая проверка через {interval} минут.",
         "sos_triggered": (
-            "🆘 SOS активирован. Оповещаю всех твоих близких прямо сейчас.\n"
-            "Они получат ссылку со всеми твоими данными и геолокацией."
+            "🆘 SOS активирован. Прямо сейчас оповещаю доверенные контакты, которые подключились в Telegram.\n"
+            "Они получат ссылку со всеми твоими данными."
         ),
         "safe_return": "🏠 Рада что ты дома! Свидание завершено.",
         "end_session_btn": "🏠 Я дома, всё хорошо",
@@ -60,7 +60,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "contacts_empty": "У тебя пока нет доверенных контактов.\nДобавь первого:",
         "add_contact_btn": "➕ Добавить контакт",
         "ask_contact_name": "Как зовут этого человека?",
-        "ask_contact_phone": "Номер телефона (для SMS, с кодом страны: +79001234567)? Или /skip",
+        "ask_contact_phone": "Номер телефона (с кодом страны, например +79001234567)? Или /skip",
         "ask_contact_email": "Email? Или /skip",
         "contact_saved": "✅ Контакт {name} сохранён!",
         "contact_invite_link": (
@@ -74,13 +74,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "trust_link_self": "Это твоя собственная ссылка-приглашение — отправь её тому человеку, кого добавляешь в контакты.",
         "skip": "/skip",
         "cancel": "Отмена",
-        "share_location_btn": "📍 Поделиться геолокацией",
     },
     "en": {
         "welcome": (
             "👋 Hi! I'm SafeOut — a safety bot for dates with strangers.\n\n"
             "Before your date, I'll help you save all info about the person and meeting place. "
-            "If you go silent — I'll immediately alert your trusted contacts.\n\n"
+            "If you go silent — I'll alert the trusted contacts who've connected with me on Telegram.\n\n"
             "Commands:\n"
             "/newdate — create a new date\n"
             "/contacts — manage trusted contacts\n"
@@ -111,7 +110,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "start_date_btn": "▶️ Start date",
         "session_started": (
             "✅ Date started. I'll ping you every {interval} minutes.\n"
-            "If you don't respond — I'll alert your trusted contacts.\n\n"
+            "If you don't respond — I'll alert your connected trusted contacts.\n\n"
             "Press 🆘 SOS at any time if you need urgent help."
         ),
         "ping_message": "👋 Are you okay? Reply to let me know you're safe.",
@@ -119,8 +118,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ping_sos_btn": "🆘 SOS — I need help",
         "ping_ok_response": "✅ Great! Next check-in in {interval} minutes.",
         "sos_triggered": (
-            "🆘 SOS activated. Alerting all your trusted contacts right now.\n"
-            "They'll receive a link with all your details and location."
+            "🆘 SOS activated. Alerting the trusted contacts who've connected on Telegram right now.\n"
+            "They'll receive a link with all your details."
         ),
         "safe_return": "🏠 Glad you're home! Date session ended.",
         "end_session_btn": "🏠 I'm home, I'm safe",
@@ -132,7 +131,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "contacts_empty": "You don't have any trusted contacts yet.\nAdd your first one:",
         "add_contact_btn": "➕ Add contact",
         "ask_contact_name": "What's this person's name?",
-        "ask_contact_phone": "Phone number (for SMS, with country code: +447911123456)? Or /skip",
+        "ask_contact_phone": "Phone number (with country code, e.g. +447911123456)? Or /skip",
         "ask_contact_email": "Email? Or /skip",
         "contact_saved": "✅ Contact {name} saved!",
         "contact_invite_link": (
@@ -146,13 +145,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "trust_link_self": "This is your own invite link — send it to the person you're adding as a contact.",
         "skip": "/skip",
         "cancel": "Cancel",
-        "share_location_btn": "📍 Share location",
     },
     "tr": {
         "welcome": (
             "👋 Merhaba! Ben SafeOut — yabancılarla buluşmalar için güvenlik botuyum.\n\n"
             "Buluşmadan önce, kişi ve buluşma yeri hakkındaki tüm bilgileri kaydetmene yardımcı olacağım. "
-            "Eğer haber vermezsen — güvendiğin kişileri hemen uyaracağım.\n\n"
+            "Eğer haber vermezsen — Telegram'da benimle bağlantı kurmuş güvenilen kişileri uyaracağım.\n\n"
             "Komutlar:\n"
             "/newdate — yeni bir buluşma oluştur\n"
             "/contacts — güvenilen kişileri yönet\n"
@@ -183,7 +181,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "start_date_btn": "▶️ Buluşmayı başlat",
         "session_started": (
             "✅ Buluşma başladı. Seni her {interval} dakikada bir kontrol edeceğim.\n"
-            "Cevap vermezsen — güvendiğin kişileri uyaracağım.\n\n"
+            "Cevap vermezsen — bağlı güvenilen kişileri uyaracağım.\n\n"
             "Acil yardım gerekirse istediğin zaman 🆘 SOS'a bas."
         ),
         "ping_message": "👋 İyi misin? Güvende olduğunu bildirmek için cevap ver.",
@@ -191,8 +189,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ping_sos_btn": "🆘 SOS — Yardıma ihtiyacım var",
         "ping_ok_response": "✅ Harika! Bir sonraki kontrol {interval} dakika sonra.",
         "sos_triggered": (
-            "🆘 SOS etkinleştirildi. Şu anda tüm güvenilen kişilerin uyarılıyor.\n"
-            "Tüm bilgilerini ve konumunu içeren bir bağlantı alacaklar."
+            "🆘 SOS etkinleştirildi. Şu anda Telegram'da bağlı güvenilen kişilerin uyarılıyor.\n"
+            "Tüm bilgilerini içeren bir bağlantı alacaklar."
         ),
         "safe_return": "🏠 Eve döndüğüne sevindim! Buluşma oturumu sona erdi.",
         "end_session_btn": "🏠 Evdeyim, güvendeyim",
@@ -204,7 +202,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "contacts_empty": "Henüz güvenilen kişin yok.\nİlkini ekle:",
         "add_contact_btn": "➕ Kişi ekle",
         "ask_contact_name": "Bu kişinin adı nedir?",
-        "ask_contact_phone": "Telefon numarası (SMS için, ülke koduyla: +905001234567)? Veya /skip",
+        "ask_contact_phone": "Telefon numarası (ülke koduyla, örn. +905001234567)? Veya /skip",
         "ask_contact_email": "E-posta? Veya /skip",
         "contact_saved": "✅ {name} kişisi kaydedildi!",
         "contact_invite_link": (
@@ -218,7 +216,6 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "trust_link_self": "Bu senin kendi davet bağlantın — kişi olarak eklediğin kişiye gönder.",
         "skip": "/skip",
         "cancel": "İptal",
-        "share_location_btn": "📍 Konumu paylaş",
     },
 }
 

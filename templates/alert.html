@@ -24,7 +24,8 @@
     .label { font-size: 13px; color: #666; min-width: 120px; }
     .value { font-size: 14px; font-weight: 500; }
     .value a { color: #1976d2; text-decoration: none; }
-    #map { height: 260px; border-radius: 10px; overflow: hidden; }
+    .map-link { display: block; background: #1976d2; color: #fff; text-align: center;
+                padding: 14px; border-radius: 10px; text-decoration: none; font-weight: 600; }
     .no-location { height: 80px; display: flex; align-items: center;
                    justify-content: center; color: #aaa; font-size: 14px; }
     .files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
@@ -61,7 +62,9 @@
   <div class="card">
     <h2>{% if lang == "ru" %}Геолокация{% elif lang == "tr" %}Konum{% else %}Location{% endif %}</h2>
     {% if lat and lon %}
-      <div id="map"></div>
+      <a class="map-link" href="https://www.google.com/maps?q={{ lat }},{{ lon }}" target="_blank">
+        🗺 {% if lang == "ru" %}Открыть последнюю геолокацию в Google Maps{% elif lang == "tr" %}Google Haritalar'da aç{% else %}Open last known location in Google Maps{% endif %}
+      </a>
     {% else %}
       <div class="no-location">
         {% if lang == "ru" %}Геолокация недоступна{% elif lang == "tr" %}Konum mevcut değil{% else %}Location unavailable{% endif %}
@@ -132,20 +135,6 @@
   </div>
 
 </div>
-
-{% if lat and lon %}
-<script>
-  function initMap() {
-    const pos = { lat: {{ lat }}, lng: {{ lon }} };
-    const map = new google.maps.Map(document.getElementById("map"), {
-      center: pos, zoom: 15,
-      disableDefaultUI: true, zoomControl: true,
-    });
-    new google.maps.Marker({ position: pos, map, title: "Last known location" });
-  }
-</script>
-<script async src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}&callback=initMap"></script>
-{% endif %}
 
 <script>
 async function acknowledge() {

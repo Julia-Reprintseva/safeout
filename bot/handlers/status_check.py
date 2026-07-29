@@ -483,7 +483,13 @@ async def sc_action(callback: CallbackQuery, db: AsyncSession, lang: str):
             if c.phone:
                 channels.append(f"📱 {c.phone}")
             if c.telegram_id:
-                channels.append(f"Telegram: @{c.telegram_id}")
+                channels.append(f'💬 <a href="tg://user?id={c.telegram_id}">Telegram</a>')
+            if not channels:
+                channels = [{
+                    "ru": "Пока не подключилась в Telegram — способов связи нет",
+                    "en": "Hasn't connected on Telegram yet — no way to reach them",
+                    "tr": "Henüz Telegram'a bağlanmadı — ulaşacak bir yol yok",
+                }[lang]]
             contacts_text = {
                 "ru": f"Свяжись с <b>{c.name}</b>:\n" + "\n".join(channels),
                 "en": f"Contact <b>{c.name}</b>:\n" + "\n".join(channels),

@@ -16,8 +16,6 @@ from core.config import settings
 app = FastAPI(docs_url=None, redoc_url=None)
 templates = Jinja2Templates(directory="templates")
 
-MAPS_KEY = ""  # set via env if using Google Maps
-
 
 @app.get("/alert/{token}", response_class=HTMLResponse)
 async def alert_page(request: Request, token: str):
@@ -73,7 +71,6 @@ async def alert_page(request: Request, token: str):
             "files": file_data,
             "acknowledged": acknowledged,
             "ack_url": f"{settings.app_base_url}/alert/{token}/ack",
-            "maps_key": MAPS_KEY,
         })
 
 

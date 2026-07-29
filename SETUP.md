@@ -59,18 +59,15 @@ docker compose up --build
    SENDGRID_FROM_EMAIL=alert@yourdomain.com
    ```
 
-## 7. Хранилище файлов (Cloudflare R2) — опционально
+## 7. Хранилище файлов (Cloudflare R2) — сейчас не используется
 
-1. [cloudflare.com](https://cloudflare.com) → R2 → Create bucket `safeout-files`
-2. API tokens → Create token с правами на bucket
-3. Добавить в `.env`:
-   ```
-   S3_ENDPOINT_URL=https://ACCOUNT_ID.r2.cloudflarestorage.com
-   S3_ACCESS_KEY=...
-   S3_SECRET_KEY=...
-   S3_BUCKET=safeout-files
-   S3_PUBLIC_URL=https://pub-xxx.r2.dev
-   ```
+Файлы (фото, скрины, голосовые) хранятся как Telegram `file_id`: бот не скачивает и не загружает их сам,
+`api/routes.py` при показе страницы тревоги проксирует их через Bot API. `storage/files.py` (загрузка в S3/R2)
+оставлен как готовый, но не подключённый путь — если понадобится своё хранилище, нужно будет:
+1. Завести бакет (например [cloudflare.com](https://cloudflare.com) → R2)
+2. Добавить `S3_*` переменные в `.env`
+3. В `bot/handlers/newdate.py` вернуть вызов `upload_bytes(...)` вместо сохранения `file_id`,
+   и в `api/routes.py` — `public_url(...)` вместо прокси-роута `/alert/{token}/files/{id}`.
 
 ## Структура проекта
 
@@ -84,9 +81,9 @@ safeout/
 ├── core/
 │   ├── models.py        — таблицы БД
 │   ├── tasks.py         — Celery (таймеры, эскалация)
-│   ├── notifications.py — SMS и email
+│   ├── notifications.py — SMS и email (не подключены по умолчанию, см. .env.example)
 │   └── config.py        — настройки
-├── api/routes.py        — веб-страница для контактов
-├── storage/files.py     — загрузка файлов
+├── api/routes.py        — веб-страница для доверенных контактов
+├── storage/files.py     — S3/R2-загрузка, не подключена по умолчанию (см. пункт 7)
 └── templates/alert.html — страница тревоги
 ```

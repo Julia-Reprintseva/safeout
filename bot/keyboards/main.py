@@ -23,7 +23,6 @@ def ping_kb(lang: str) -> InlineKeyboardMarkup:
 def start_date_kb(lang: str, session_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text=t("start_date_btn", lang), callback_data=f"session:start:{session_id}")
-    builder.button(text=t("share_location_btn", lang), callback_data=f"session:location:{session_id}")
     builder.adjust(1)
     return builder.as_markup()
 
