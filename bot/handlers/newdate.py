@@ -9,7 +9,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from aiogram import Router, F
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
@@ -220,6 +220,14 @@ async def start_session(callback: CallbackQuery, db: AsyncSession, lang: str):
         await callback.answer("Сессия не найдена")
         return
 
+    result = await db.execute(
+        select(TrustedContact).where(TrustedContact.user_id == callback.from_user.id)
+    )
+    contacts = result.scalars().all()
+    if not any(c.phone or c.telegram_id for c in contacts):
+        await callback.answer(t("no_reachable_contacts", lang), show_alert=True)
+        return
+
     session_obj.status = SessionStatus.ACTIVE
     session_obj.started_at = datetime.now(timezone.utc)
     await db.commit()
@@ -326,3 +334,32 @@ async def file_location(message: Message, state: FSMContext, db: AsyncSession):
         session_obj.last_lon = message.location.longitude
         session_obj.last_location_at = datetime.now(timezone.utc)
         await db.commit()
+
+
+async def _save_active_location(message: Message, db: AsyncSession):
+    result = await db.execute(
+        select(DateSession)
+        .where(DateSession.user_id == message.from_user.id)
+        .where(DateSession.status == SessionStatus.ACTIVE)
+        .order_by(DateSession.started_at.desc())
+    )
+    session_obj = result.scalars().first()
+    if session_obj:
+        session_obj.last_lat = message.location.latitude
+        session_obj.last_lon = message.location.longitude
+        session_obj.last_location_at = datetime.now(timezone.utc)
+        await db.commit()
+
+
+@router.message(StateFilter(None), F.location)
+async def active_location_update(message: Message, db: AsyncSession):
+    """Initial location share (live or static) sent outside any FSM flow —
+    i.e. while a date is active. Live location keeps arriving as edits, see
+    active_location_edit below."""
+    await _save_active_location(message, db)
+
+
+@router.edited_message(F.location)
+async def active_location_edit(message: Message, db: AsyncSession):
+    """Telegram sends periodic live-location updates as message edits."""
+    await _save_active_location(message, db)

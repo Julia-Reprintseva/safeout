@@ -120,6 +120,25 @@ async def contact_username(message: Message, state: FSMContext, db: AsyncSession
     await message.answer(t("contact_invite_link", lang, name=data["name"], link=invite_link))
 
 
+@router.callback_query(lambda c: c.data and c.data.startswith("contact:resend:"))
+async def resend_invite(callback: CallbackQuery, db: AsyncSession, lang: str):
+    contact_id = int(callback.data.split(":")[2])
+    contact = await db.get(TrustedContact, contact_id)
+    if not contact or contact.user_id != callback.from_user.id:
+        await callback.answer()
+        return
+
+    if not contact.invite_token:
+        # Already connected — nothing to resend.
+        await callback.answer(t("contact_connected", lang), show_alert=True)
+        return
+
+    bot_user = await callback.bot.get_me()
+    invite_link = f"https://t.me/{bot_user.username}?start=trust_{contact.invite_token}"
+    await callback.message.answer(t("contact_invite_link", lang, name=contact.name, link=invite_link))
+    await callback.answer()
+
+
 @router.callback_query(lambda c: c.data and c.data.startswith("contact:delete:"))
 async def delete_contact(callback: CallbackQuery, db: AsyncSession, lang: str):
     contact_id = int(callback.data.split(":")[2])

@@ -45,6 +45,8 @@ def files_done_kb(lang: str, session_id: int) -> InlineKeyboardMarkup:
 def contacts_kb(lang: str, contacts: list) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for c in contacts:
+        if c.invite_token and not c.telegram_id:
+            builder.button(text=f"🔁 {c.name}", callback_data=f"contact:resend:{c.id}")
         builder.button(text=f"❌ {c.name}", callback_data=f"contact:delete:{c.id}")
     builder.button(text=t("add_contact_btn", lang), callback_data="contact:add")
     builder.adjust(1)

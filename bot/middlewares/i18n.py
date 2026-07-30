@@ -40,6 +40,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "session_started": (
             "✅ Свидание начато. Буду пинговать тебя каждые {interval} минут.\n"
             "Если не ответишь — оповещу подключённые доверенные контакты.\n\n"
+            "📍 Поделись живой геолокацией (скрепка → Геопозиция → Транслировать геопозицию) — тогда на странице тревоги контакты увидят, где ты.\n\n"
             "В любой момент нажми 🆘 SOS если нужна срочная помощь."
         ),
         "ping_message": "👋 Всё хорошо? Ответь, чтобы я знал(а) что ты в безопасности.",
@@ -70,6 +71,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "contact_pending": "⏳ ждём подключения в Telegram",
         "contact_connected": "✅ подключён(а) в Telegram",
+        "no_reachable_contacts": (
+            "⚠️ Ни один контакт не сможет получить оповещение — нет ни телефона, "
+            "ни подключения в Telegram. Добавь телефон или дождись подключения в /contacts."
+        ),
         "trust_link_connected": "✅ Готово! Теперь я напишу тебе сюда, если {name} не выйдет на связь во время свидания.",
         "trust_link_owner_notified": "✅ {name} подключилась как доверенный контакт в Telegram!",
         "trust_link_invalid": "Эта ссылка недействительна или уже использована.",
@@ -113,6 +118,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "session_started": (
             "✅ Date started. I'll ping you every {interval} minutes.\n"
             "If you don't respond — I'll alert your connected trusted contacts.\n\n"
+            "📍 Share live location (paperclip → Location → Share Live Location) so contacts can see where you are on the alert page.\n\n"
             "Press 🆘 SOS at any time if you need urgent help."
         ),
         "ping_message": "👋 Are you okay? Reply to let me know you're safe.",
@@ -143,6 +149,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "contact_pending": "⏳ waiting to connect on Telegram",
         "contact_connected": "✅ connected on Telegram",
+        "no_reachable_contacts": (
+            "⚠️ No contact can be reached — no phone number and none connected on "
+            "Telegram yet. Add a phone or wait for a connection in /contacts."
+        ),
         "trust_link_connected": "✅ All set! I'll message you here if {name} doesn't check in during a date.",
         "trust_link_owner_notified": "✅ {name} connected as a trusted contact on Telegram!",
         "trust_link_invalid": "This link is invalid or already used.",
@@ -186,6 +196,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "session_started": (
             "✅ Buluşma başladı. Seni her {interval} dakikada bir kontrol edeceğim.\n"
             "Cevap vermezsen — bağlı güvenilen kişileri uyaracağım.\n\n"
+            "📍 Canlı konum paylaş (ataç → Konum → Canlı Konum Paylaş) — böylece kişiler tehlike sayfasında nerede olduğunu görebilir.\n\n"
             "Acil yardım gerekirse istediğin zaman 🆘 SOS'a bas."
         ),
         "ping_message": "👋 İyi misin? Güvende olduğunu bildirmek için cevap ver.",
@@ -216,6 +227,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "contact_pending": "⏳ Telegram'da bağlanması bekleniyor",
         "contact_connected": "✅ Telegram'da bağlandı",
+        "no_reachable_contacts": (
+            "⚠️ Hiçbir kişiye ulaşılamıyor — telefon numarası yok ve henüz Telegram'a "
+            "bağlanmadılar. /contacts üzerinden telefon ekle veya bağlanmalarını bekle."
+        ),
         "trust_link_connected": "✅ Tamam! {name} buluşma sırasında haber vermezse sana buradan yazacağım.",
         "trust_link_owner_notified": "✅ {name} Telegram'da güvenilen kişi olarak bağlandı!",
         "trust_link_invalid": "Bu bağlantı geçersiz veya zaten kullanılmış.",
