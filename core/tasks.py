@@ -99,7 +99,11 @@ def escalate_l1(self, session_id: int, generation: int | None = None):
     sms_text = _build_sms_text(session_data, level=1, lang=lang)
     subject = "⚠️ SafeOut — проверка не пройдена" if lang == "ru" else "⚠️ SafeOut — check-in missed"
 
+    logger.info("escalate_l1: %d contacts for session %s", len(contacts), session_id)
     for contact in contacts:
+        logger.info("contact: name=%s phone=%s email=%s telegram_id=%s",
+                    contact.get("name"), bool(contact.get("phone")),
+                    bool(contact.get("email")), contact.get("telegram_id"))
         if contact.get("phone"):
             send_sms(contact["phone"], sms_text)
         if contact.get("email"):
@@ -107,6 +111,7 @@ def escalate_l1(self, session_id: int, generation: int | None = None):
         if contact.get("telegram_id"):
             try:
                 asyncio.run(notify_telegram_contact(contact["telegram_id"], sms_text))
+                logger.info("Telegram notify sent to %s", contact["telegram_id"])
             except Exception:
                 logger.exception("Failed Telegram notify for contact %s", contact.get("telegram_id"))
 
