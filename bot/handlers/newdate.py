@@ -281,7 +281,7 @@ async def start_session(callback: CallbackQuery, db: AsyncSession, lang: str):
         return
 
     session_obj.status = SessionStatus.ACTIVE
-    session_obj.started_at = datetime.now(timezone.utc)
+    session_obj.started_at = datetime.utcnow()
     await db.commit()
 
     # Schedule first ping; ping_user itself arms the L1 escalation timer
@@ -325,7 +325,7 @@ async def end_session(callback: CallbackQuery, db: AsyncSession, lang: str):
         return
 
     session_obj.status = SessionStatus.SAFE
-    session_obj.ended_at = datetime.now(timezone.utc)
+    session_obj.ended_at = datetime.utcnow()
     await db.commit()
 
     await callback.message.answer(t("safe_return", lang))
@@ -384,7 +384,7 @@ async def file_location(message: Message, state: FSMContext, db: AsyncSession):
     if session_obj:
         session_obj.last_lat = message.location.latitude
         session_obj.last_lon = message.location.longitude
-        session_obj.last_location_at = datetime.now(timezone.utc)
+        session_obj.last_location_at = datetime.utcnow()
         await db.commit()
 
 
@@ -399,7 +399,7 @@ async def _save_active_location(message: Message, db: AsyncSession):
     if session_obj:
         session_obj.last_lat = message.location.latitude
         session_obj.last_lon = message.location.longitude
-        session_obj.last_location_at = datetime.now(timezone.utc)
+        session_obj.last_location_at = datetime.utcnow()
         await db.commit()
 
 
