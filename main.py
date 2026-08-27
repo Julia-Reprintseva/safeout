@@ -53,6 +53,17 @@ async def main():
 
     dp.startup.register(on_startup)
 
+    # Temporary: log every raw update type to diagnose loop
+    @dp.update.outer_middleware()
+    async def log_update(handler, event, data):
+        upd = event.update if hasattr(event, "update") else event
+        kind = upd.event_type if hasattr(upd, "event_type") else type(upd).__name__
+        cb_data = None
+        if hasattr(upd, "callback_query") and upd.callback_query:
+            cb_data = upd.callback_query.data
+        logger.info("RAW UPDATE type=%s cb_data=%s", kind, cb_data)
+        return await handler(event, data)
+
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 
