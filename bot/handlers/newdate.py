@@ -54,14 +54,25 @@ class NewDate(StatesGroup):
 def _parse_return_time(text: str) -> datetime | None:
     """Parse user input like '23:00' or 'через 3 часа' / 'in 3 hours'."""
     text = text.strip().lower()
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()  # naive UTC — matches TIMESTAMP WITHOUT TIME ZONE column
+
+    # "через N минут/мин" / "in N minutes/min"
+    for kw in ["минут", "мин", "minute", "min"]:
+        if kw in text:
+            try:
+                parts = text.split()
+                for p in parts:
+                    if p.isdigit():
+                        return now + timedelta(minutes=int(p))
+            except Exception:
+                pass
 
     # "через N часов/час" / "in N hours"
     for template in ["через {} час", "через {} ч", "in {} hour", "in {} h"]:
         if template.split("{}")[0] in text:
             try:
                 parts = text.split()
-                for i, p in enumerate(parts):
+                for p in parts:
                     if p.isdigit():
                         return now + timedelta(hours=int(p))
             except Exception:
