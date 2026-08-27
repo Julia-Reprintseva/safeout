@@ -11,7 +11,7 @@ from core.database import engine
 from core.models import Base
 from bot.middlewares.db import DbMiddleware
 from bot.middlewares.i18n import I18nMiddleware
-from bot.handlers import start, contacts, newdate, checklist, status_check
+from bot.handlers import start, contacts, newdate, checklist, status_check, clear
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,6 +49,7 @@ async def main():
     dp.include_router(newdate.router)
     dp.include_router(checklist.router)
     dp.include_router(status_check.router)
+    dp.include_router(clear.router)
 
     dp.startup.register(on_startup)
 

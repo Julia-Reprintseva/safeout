@@ -266,18 +266,20 @@ async def files_done(callback: CallbackQuery, state: FSMContext, db: AsyncSessio
 
 @router.callback_query(lambda c: c.data and c.data.startswith("session:start:"))
 async def start_session(callback: CallbackQuery, db: AsyncSession, lang: str):
+    await callback.answer()  # answer first to stop Telegram retries
     session_id = int(callback.data.split(":")[2])
     session_obj = await db.get(DateSession, session_id)
     if not session_obj or session_obj.user_id != callback.from_user.id:
-        await callback.answer("Сессия не найдена")
         return
+    if session_obj.status == SessionStatus.ACTIVE:
+        return  # already started
 
     result = await db.execute(
         select(TrustedContact).where(TrustedContact.user_id == callback.from_user.id)
     )
     contacts = result.scalars().all()
     if not contacts:
-        await callback.answer(t("no_reachable_contacts", lang), show_alert=True)
+        await callback.message.answer(t("no_reachable_contacts", lang))
         return
 
     session_obj.status = SessionStatus.ACTIVE
@@ -318,18 +320,20 @@ async def trigger_sos(callback: CallbackQuery, db: AsyncSession, lang: str):
 
 @router.callback_query(lambda c: c.data and c.data.startswith("session:end:"))
 async def end_session(callback: CallbackQuery, db: AsyncSession, lang: str):
+    await callback.answer()  # always answer first to stop Telegram retries
     session_id = int(callback.data.split(":")[2])
     session_obj = await db.get(DateSession, session_id)
     if not session_obj:
-        await callback.answer()
         return
+    if session_obj.status == SessionStatus.SAFE:
+        return  # already ended, ignore duplicate callbacks
 
     session_obj.status = SessionStatus.SAFE
     session_obj.ended_at = datetime.utcnow()
     await db.commit()
 
+    await callback.message.edit_reply_markup()
     await callback.message.answer(t("safe_return", lang))
-    await callback.answer()
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("ping:ok"))

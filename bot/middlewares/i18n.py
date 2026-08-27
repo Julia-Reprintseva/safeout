@@ -51,7 +51,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "🆘 SOS активирован. Прямо сейчас оповещаю доверенные контакты, которые подключились в Telegram.\n"
             "Они получат ссылку со всеми твоими данными."
         ),
-        "safe_return": "🏠 Рада что ты дома! Свидание завершено.",
+        "safe_return": "🏠 Рада, что ты дома! Ну как это было? Понравилось или очередной тюбик? 😄",
         "end_session_btn": "🏠 Я дома, всё хорошо",
         "no_contacts_warning": (
             "⚠️ У тебя нет доверенных контактов. "
@@ -143,7 +143,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "🆘 SOS activated. Alerting the trusted contacts who've connected on Telegram right now.\n"
             "They'll receive a link with all your details."
         ),
-        "safe_return": "🏠 Glad you're home! Date session ended.",
+        "safe_return": "🏠 So glad you're home! So — how did it go? A keeper or a total write-off? 😄",
         "end_session_btn": "🏠 I'm home, I'm safe",
         "no_contacts_warning": (
             "⚠️ You have no trusted contacts. "
@@ -235,7 +235,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "🆘 SOS etkinleştirildi. Şu anda Telegram'da bağlı güvenilen kişilerin uyarılıyor.\n"
             "Tüm bilgilerini içeren bir bağlantı alacaklar."
         ),
-        "safe_return": "🏠 Eve döndüğüne sevindim! Buluşma oturumu sona erdi.",
+        "safe_return": "🏠 Evde olduğuna sevindim! Nasıldı peki? Tekrar görecek misin yoksa silip attın mı? 😄",
         "end_session_btn": "🏠 Evdeyim, güvendeyim",
         "no_contacts_warning": (
             "⚠️ Güvenilen kişin yok. "
