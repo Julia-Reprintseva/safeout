@@ -425,16 +425,15 @@ async def _show_detailed(callback: "CallbackQuery", session_id: int, db: AsyncSe
     """Show detailed (screen 2) checklist."""
     user_id = callback.from_user.id
     state, _, _ = await _load_state(session_id, user_id, db, redis)
-    text = render_checklist_text(state, lang)
 
     header = {
-        "ru": "📋 <b>Список безопасности</b>\n\n✅ выполнено   ❌ не выполнено   ⬜ не отмечено\n\n",
-        "en": "📋 <b>Safety checklist</b>\n\n✅ done   ❌ not done   ⬜ unchecked\n\n",
-        "tr": "📋 <b>Güvenlik listesi</b>\n\n✅ tamam   ❌ yapılmadı   ⬜ işaretlenmedi\n\n",
+        "ru": "📋 <b>Список безопасности</b>\n\nНажми на пункт чтобы отметить: ⬜ → ✅ → ❌ → ⬜",
+        "en": "📋 <b>Safety checklist</b>\n\nTap an item to mark it: ⬜ → ✅ → ❌ → ⬜",
+        "tr": "📋 <b>Güvenlik listesi</b>\n\nİşaretlemek için dokun: ⬜ → ✅ → ❌ → ⬜",
     }[lang]
 
     kb = detailed_checklist_kb(session_id, state, lang)
-    await callback.message.edit_text(header + text, reply_markup=kb, parse_mode="HTML")
+    await callback.message.edit_text(header, reply_markup=kb, parse_mode="HTML")
     await callback.answer()
 
 
