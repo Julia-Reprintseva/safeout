@@ -311,7 +311,7 @@ def render_checklist_text(state: dict, lang: str) -> str:
             icon = "❌"
         else:
             icon = "⬜"
-        lines.append(f"{n}. {icon} {label}")
+        lines.append(f"{n}. {label} {icon}")
     return "\n".join(lines)
 
 
