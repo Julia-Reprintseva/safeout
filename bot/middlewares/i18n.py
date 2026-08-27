@@ -19,8 +19,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "language_set": "✅ Язык установлен: Русский",
         "new_date_start": "📋 Создаём новое свидание. Как зовут человека или его ник?",
         "ask_profile_url": "🔗 Ссылка на его профиль (Tinder, ВКонтакте, Instagram и т.д.)? Или нажми /skip",
-        "ask_meeting_place": "📍 Где вы встречаетесь? (адрес, название места)",
-        "ask_destination": "🗺 Куда планируете поехать? (кафе, кино, его место — всё что знаешь) Или /skip",
+        "ask_meeting_place": "📍 Где вы встречаетесь впервые? (адрес или название, например: кафе «Мята», ул. Ленина 5)",
+        "ask_destination": "🗺 Куда поедете дальше или что ещё планируете? (кино, его место, другой ресторан и т.д.) Или /skip если нет планов после",
         "ask_car": "🚗 Номер и описание машины (марка, цвет)? Или /skip",
         "ask_extra": "📝 Любая другая важная информация? Или /skip",
         "ask_return_time": "⏰ Когда планируешь вернуться? (например: 23:00 или через 3 часа)",
@@ -63,7 +63,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_contact_name": "Как зовут этого человека?",
         "ask_contact_phone": "Номер телефона (с кодом страны, например +79001234567)? Или /skip",
         "ask_contact_email": "Email? Или /skip",
-        "ask_contact_username": "Ник в Telegram (без @)? Или /skip",
+        "ask_contact_username": "Ник в Telegram (@masha_example)? Или /skip",
         "contact_saved": "✅ Контакт {name} сохранён!",
         "contact_invite_link": (
             "Чтобы я могла написать {name} в Telegram, отправь ей эту ссылку — "
@@ -97,8 +97,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "language_set": "✅ Language set: English",
         "new_date_start": "📋 Creating a new date. What's the person's name or username?",
         "ask_profile_url": "🔗 Link to their profile (Tinder, Instagram, etc.)? Or /skip",
-        "ask_meeting_place": "📍 Where are you meeting? (address or place name)",
-        "ask_destination": "🗺 Where do you plan to go? (café, cinema, their place — anything you know) Or /skip",
+        "ask_meeting_place": "📍 Where are you meeting for the first time? (address or name, e.g.: Coffee House, 5 Main St)",
+        "ask_destination": "🗺 Where will you go next or what else is planned? (cinema, their place, another restaurant, etc.) Or /skip if no further plans",
         "ask_car": "🚗 Car plate and description (make, colour)? Or /skip",
         "ask_extra": "📝 Any other important information? Or /skip",
         "ask_return_time": "⏰ When do you plan to be back? (e.g. 23:00 or in 3 hours)",
@@ -141,7 +141,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_contact_name": "What's this person's name?",
         "ask_contact_phone": "Phone number (with country code, e.g. +447911123456)? Or /skip",
         "ask_contact_email": "Email? Or /skip",
-        "ask_contact_username": "Telegram username (without @)? Or /skip",
+        "ask_contact_username": "Telegram username (@masha_example)? Or /skip",
         "contact_saved": "✅ Contact {name} saved!",
         "contact_invite_link": (
             "So I can message {name} on Telegram, send them this link — "
@@ -175,8 +175,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "language_set": "✅ Dil ayarlandı: Türkçe",
         "new_date_start": "📋 Yeni bir buluşma oluşturuyoruz. Kişinin adı veya kullanıcı adı nedir?",
         "ask_profile_url": "🔗 Profiline bağlantı (Tinder, Instagram vb.)? Veya /skip",
-        "ask_meeting_place": "📍 Nerede buluşuyorsunuz? (adres veya yer adı)",
-        "ask_destination": "🗺 Nereye gitmeyi planlıyorsunuz? Veya /skip",
+        "ask_meeting_place": "📍 İlk buluşma yeri nerede? (adres veya yer adı, örn: Merkez Kafe, Atatürk Cd. 5)",
+        "ask_destination": "🗺 Sonra nereye gideceksiniz veya başka planlarınız var mı? (sinema, evi, başka restoran vb.) Plan yoksa /skip",
         "ask_car": "🚗 Araç plakası ve tanımı (marka, renk)? Veya /skip",
         "ask_extra": "📝 Başka önemli bilgi var mı? Veya /skip",
         "ask_return_time": "⏰ Ne zaman geri dönmeyi planlıyorsun? (örn: 23:00 veya 3 saat sonra)",
@@ -219,7 +219,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ask_contact_name": "Bu kişinin adı nedir?",
         "ask_contact_phone": "Telefon numarası (ülke koduyla, örn. +905001234567)? Veya /skip",
         "ask_contact_email": "E-posta? Veya /skip",
-        "ask_contact_username": "Telegram kullanıcı adı (@ olmadan)? Veya /skip",
+        "ask_contact_username": "Telegram kullanıcı adı (@masha_example)? Veya /skip",
         "contact_saved": "✅ {name} kişisi kaydedildi!",
         "contact_invite_link": (
             "{name} kişisine Telegram'dan yazabilmem için bu bağlantıyı gönder — "

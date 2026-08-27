@@ -50,6 +50,9 @@ CHECKLIST: list[dict] = [
         "tr": "Sesli veya görüntülü konuştunuz — gerçek bir insan olduğundan eminsin",
         "critical": True,
         "auto_field": None,
+        "btn_ru": "Общались голосом / видео",
+        "btn_en": "Talked by voice/video",
+        "btn_tr": "Sesli/görüntülü konuştuk",
     },
     {
         "key": "screenshots",
@@ -68,6 +71,9 @@ CHECKLIST: list[dict] = [
         "tr": "Belgelerinin kopyası var (pasaport veya sürücü belgesi)",
         "critical": False,
         "auto_field": None,
+        "btn_ru": "Есть копия документов",
+        "btn_en": "Have copy of documents",
+        "btn_tr": "Belge kopyası var",
     },
     {
         "key": "car_plate",
@@ -86,6 +92,9 @@ CHECKLIST: list[dict] = [
         "tr": "Ev adresini biliyorsun",
         "critical": False,
         "auto_field": None,
+        "btn_ru": "Знаю его домашний адрес",
+        "btn_en": "Know his home address",
+        "btn_tr": "Ev adresini biliyorum",
     },
     # Block 2 — Place & route
     {
@@ -96,6 +105,9 @@ CHECKLIST: list[dict] = [
         "tr": "İlk buluşma halka açık bir yerde (evinde değil)",
         "critical": True,
         "auto_field": None,
+        "btn_ru": "Встреча в публичном месте",
+        "btn_en": "Meeting in public place",
+        "btn_tr": "Halka açık yerde buluşma",
     },
     {
         "key": "meeting_place_saved",
@@ -123,6 +135,9 @@ CHECKLIST: list[dict] = [
         "tr": "Kendi başına eve nasıl döneceğini biliyorsun (taksi, metro)",
         "critical": True,
         "auto_field": None,
+        "btn_ru": "Знаю как добраться домой",
+        "btn_en": "Know how to get home",
+        "btn_tr": "Eve nasıl döneceğimi biliyorum",
     },
     # Block 3 — Trusted people know
     {
@@ -152,6 +167,9 @@ CHECKLIST: list[dict] = [
         "tr": "Telefon şarjlı (tercihen %50+)",
         "critical": True,
         "auto_field": None,
+        "btn_ru": "Телефон заряжен (50%+)",
+        "btn_en": "Phone is charged (50%+)",
+        "btn_tr": "Telefon şarjlı (%50+)",
     },
     {
         "key": "internet_on",
@@ -161,6 +179,9 @@ CHECKLIST: list[dict] = [
         "tr": "Mobil internet açık",
         "critical": True,
         "auto_field": None,
+        "btn_ru": "Мобильный интернет включён",
+        "btn_en": "Mobile internet is on",
+        "btn_tr": "Mobil internet açık",
     },
     {
         "key": "emergency_number",
@@ -170,6 +191,9 @@ CHECKLIST: list[dict] = [
         "tr": "Bu ülkedeki acil numarayı biliyorsun",
         "critical": False,
         "auto_field": None,
+        "btn_ru": "Знаю номер экстренной помощи",
+        "btn_en": "Know emergency number",
+        "btn_tr": "Acil numarayı biliyorum",
     },
     {
         "key": "taxi_app",
@@ -179,6 +203,9 @@ CHECKLIST: list[dict] = [
         "tr": "Taksi uygulaması yüklü ve çalışıyor",
         "critical": False,
         "auto_field": None,
+        "btn_ru": "Приложение такси работает",
+        "btn_en": "Taxi app is working",
+        "btn_tr": "Taksi uygulaması çalışıyor",
     },
     # Block 5 — Emergency plan
     {
@@ -189,6 +216,9 @@ CHECKLIST: list[dict] = [
         "tr": "Rahatsız hissedersen ayrılmak için bir bahaneniz var",
         "critical": False,
         "auto_field": None,
+        "btn_ru": "Придумала причину уйти",
+        "btn_en": "Have excuse to leave",
+        "btn_tr": "Ayrılmak için bahanem var",
     },
     {
         "key": "knows_sos",
@@ -198,6 +228,9 @@ CHECKLIST: list[dict] = [
         "tr": "SafeOut'ta tek dokunuşla SOS göndermeyi biliyorsun",
         "critical": False,
         "auto_field": None,
+        "btn_ru": "Умею отправить SOS",
+        "btn_en": "Know how to send SOS",
+        "btn_tr": "SOS göndermeyi biliyorum",
     },
     {
         "key": "friend_call",
@@ -207,6 +240,9 @@ CHECKLIST: list[dict] = [
         "tr": "Bir arkadaşın kontrol etmek için belirli bir saatte arayacak",
         "critical": False,
         "auto_field": None,
+        "btn_ru": "Подруга позвонит проверить",
+        "btn_en": "Friend will call to check in",
+        "btn_tr": "Arkadaşım arayacak",
     },
 ]
 
@@ -223,13 +259,14 @@ async def build_checklist_state(
     session: DateSession | None,
     contacts: list,
     files: list,
-    manual_checks: set[str],
+    manual_yes: set[str],
+    manual_no: set[str],
 ) -> dict[str, bool | None]:
     """
     Returns {key: True/False/None} for each checklist item.
-    True  = confirmed (auto or manual)
-    False = explicitly not done (manual toggle)
-    None  = unknown / not checked yet
+    True  = confirmed yes (auto or manual)
+    False = explicitly marked no (user acknowledged but can't/didn't do it)
+    None  = not addressed yet
     """
     state: dict[str, bool | None] = {}
 
@@ -245,8 +282,11 @@ async def build_checklist_state(
 
     for item in CHECKLIST:
         key = item["key"]
-        if key in manual_checks:
+        if key in manual_yes:
             state[key] = True
+            continue
+        if key in manual_no:
+            state[key] = False
             continue
         af = item["auto_field"]
         if af:
@@ -258,7 +298,12 @@ async def build_checklist_state(
 
 
 def render_checklist(state: dict, lang: str) -> tuple[str, bool]:
-    """Returns (message_text, all_critical_done)."""
+    """Returns (message_text, all_critical_done).
+
+    Only unaddressed (None) critical items block start.
+    Items marked False (explicitly acknowledged as not done) do NOT block —
+    the user has consciously noted the gap and chosen to proceed.
+    """
     lines = []
     current_block = 0
     all_critical_done = True
@@ -275,30 +320,39 @@ def render_checklist(state: dict, lang: str) -> tuple[str, bool]:
             icon = "✅"
         elif status is False:
             icon = "❌"
-            if item["critical"]:
-                all_critical_done = False
+            # Not blocking — user acknowledged and decided to proceed anyway
         else:
             icon = "⬜️"
             if item["critical"]:
                 all_critical_done = False
 
-        critical_marker = " <b>(!)</b>" if item["critical"] and status is not True else ""
+        critical_marker = " <b>(!)</b>" if item["critical"] and status is None else ""
         lines.append(f"{icon} {label}{critical_marker}")
 
     return "\n".join(lines), all_critical_done
 
 
 def checklist_kb(session_id: int, state: dict, lang: str, all_critical_done: bool) -> object:
-    """Keyboard: toggle buttons for manual items + start button."""
+    """Keyboard: toggle buttons for manual items + start button.
+
+    Tapping cycles: ⬜️ → ✅ → ❌ → ⬜️
+    ❌ means "I know but I can't do this" — does not block start for critical items.
+    """
     builder = InlineKeyboardBuilder()
 
+    btn_lang = f"btn_{lang}"
     for item in CHECKLIST:
         if item["auto_field"] is not None:
             continue  # auto-checked, no button needed
         key = item["key"]
         status = state.get(key)
-        icon = "✅" if status else "⬜️"
-        label = item[lang][:40]
+        if status is True:
+            icon = "✅"
+        elif status is False:
+            icon = "❌"
+        else:
+            icon = "⬜️"
+        label = item.get(btn_lang) or item[lang][:28]
         builder.button(
             text=f"{icon} {label}",
             callback_data=f"cl:toggle:{session_id}:{key}",
@@ -333,10 +387,13 @@ async def show_checklist(
     session_id: int,
     db: AsyncSession,
     lang: str,
-    manual_checks: set[str] | None = None,
+    manual_yes: set[str] | None = None,
+    manual_no: set[str] | None = None,
 ):
-    if manual_checks is None:
-        manual_checks = set()
+    if manual_yes is None:
+        manual_yes = set()
+    if manual_no is None:
+        manual_no = set()
 
     session = await db.get(DateSession, session_id)
 
@@ -352,13 +409,13 @@ async def show_checklist(
     )
     files = files_result.scalars().all()
 
-    state = await build_checklist_state(session, contacts, files, manual_checks)
+    state = await build_checklist_state(session, contacts, files, manual_yes, manual_no)
     text, all_critical_done = render_checklist(state, lang)
 
     header = {
-        "ru": "📋 <b>Чек-лист безопасности SafeOut</b>\n\n✅ Заполнено автоматически   ⬜️ Нажми чтобы отметить   <b>(!)</b> Обязательно\n",
-        "en": "📋 <b>SafeOut Safety Checklist</b>\n\n✅ Auto-filled   ⬜️ Tap to confirm   <b>(!)</b> Required\n",
-        "tr": "📋 <b>SafeOut Güvenlik Kontrol Listesi</b>\n\n✅ Otomatik dolduruldu   ⬜️ Onaylamak için dokun   <b>(!)</b> Zorunlu\n",
+        "ru": "📋 <b>Чек-лист безопасности SafeOut</b>\n\n✅ Выполнено   ❌ Не выполнено (нажми ещё раз)   ⬜️ Нажми чтобы отметить   <b>(!)</b> Обязательно\n",
+        "en": "📋 <b>SafeOut Safety Checklist</b>\n\n✅ Done   ❌ Not done (tap again)   ⬜️ Tap to confirm   <b>(!)</b> Required\n",
+        "tr": "📋 <b>SafeOut Güvenlik Kontrol Listesi</b>\n\n✅ Tamam   ❌ Yapılmadı (tekrar dokun)   ⬜️ Onaylamak için dokun   <b>(!)</b> Zorunlu\n",
     }[lang]
 
     full_text = header + text
@@ -394,7 +451,17 @@ async def cmd_checklist(message: Message, db: AsyncSession, lang: str):
         }[lang]
         await message.answer(no_session)
         return
-    await show_checklist(message, session.id, db, lang)
+
+    from core.tasks import celery_app
+    redis = celery_app.backend.client
+    def _decode(raw):
+        return {v.decode() if isinstance(v, bytes) else v for v in raw}
+    yes_key = f"cl:{message.from_user.id}:{session.id}"
+    no_key = f"cl:no:{message.from_user.id}:{session.id}"
+    manual_yes = _decode(redis.smembers(yes_key))
+    manual_no = _decode(redis.smembers(no_key))
+
+    await show_checklist(message, session.id, db, lang, manual_yes, manual_no)
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("cl:toggle:"))
@@ -402,31 +469,37 @@ async def toggle_item(callback: CallbackQuery, db: AsyncSession, lang: str):
     _, _, session_id_str, key = callback.data.split(":", 3)
     session_id = int(session_id_str)
 
-    # Retrieve current manual checks from FSM or re-derive from callback
-    # For simplicity we store manual checks in a DB-friendly way:
-    # re-read from session and toggle
-    from aiogram.fsm.context import FSMContext
-    # We pass manual_checks via bot data stored in Redis using a simple key
-    from aiogram import Bot
-    bot: Bot = callback.bot
-    redis_key = f"cl:{callback.from_user.id}:{session_id}"
-
-    # Read current manual checks from Redis
     from core.tasks import celery_app
     redis = celery_app.backend.client  # reuse Celery's Redis connection
 
-    raw = redis.smembers(redis_key)
-    manual_checks: set[str] = {v.decode() if isinstance(v, bytes) else v for v in raw}
+    yes_key = f"cl:{callback.from_user.id}:{session_id}"
+    no_key = f"cl:no:{callback.from_user.id}:{session_id}"
 
-    if key in manual_checks:
-        manual_checks.discard(key)
-        redis.srem(redis_key, key)
+    def _decode(raw):
+        return {v.decode() if isinstance(v, bytes) else v for v in raw}
+
+    manual_yes = _decode(redis.smembers(yes_key))
+    manual_no = _decode(redis.smembers(no_key))
+
+    # Cycle: None → True → False → None
+    if key in manual_yes:
+        # True → False
+        redis.srem(yes_key, key)
+        redis.sadd(no_key, key)
+        redis.expire(no_key, 86400 * 7)
+        manual_yes.discard(key)
+        manual_no.add(key)
+    elif key in manual_no:
+        # False → None
+        redis.srem(no_key, key)
+        manual_no.discard(key)
     else:
-        manual_checks.add(key)
-        redis.sadd(redis_key, key)
-        redis.expire(redis_key, 86400 * 7)  # keep for 7 days
+        # None → True
+        redis.sadd(yes_key, key)
+        redis.expire(yes_key, 86400 * 7)
+        manual_yes.add(key)
 
-    await show_checklist(callback, session_id, db, lang, manual_checks)
+    await show_checklist(callback, session_id, db, lang, manual_yes, manual_no)
 
 
 @router.callback_query(F.data == "cl:noop")

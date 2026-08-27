@@ -13,6 +13,19 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
+
+# Ordered list of (state_key, question_i18n_key) for back navigation
+FLOW_STEPS = [
+    ("NewDate:date_name",     "new_date_start"),
+    ("NewDate:profile_url",   "ask_profile_url"),
+    ("NewDate:meeting_place", "ask_meeting_place"),
+    ("NewDate:destination",   "ask_destination"),
+    ("NewDate:car",           "ask_car"),
+    ("NewDate:extra",         "ask_extra"),
+    ("NewDate:return_time",   "ask_return_time"),
+]
+_FLOW_KEYS = [s for s, _ in FLOW_STEPS]
+_FLOW_QUESTIONS = dict(FLOW_STEPS)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -66,6 +79,24 @@ def _parse_return_time(text: str) -> datetime | None:
             pass
 
     return None
+
+
+@router.message(
+    StateFilter(
+        NewDate.profile_url, NewDate.meeting_place, NewDate.destination,
+        NewDate.car, NewDate.extra, NewDate.return_time,
+    ),
+    Command("back"),
+)
+async def step_back(message: Message, state: FSMContext, lang: str):
+    current = await state.get_state()
+    idx = _FLOW_KEYS.index(current) if current in _FLOW_KEYS else -1
+    if idx <= 0:
+        return
+    prev_key = _FLOW_KEYS[idx - 1]
+    question_key = _FLOW_QUESTIONS[prev_key]
+    await state.set_state(prev_key)
+    await message.answer(f"↩️ {t(question_key, lang)}")
 
 
 @router.message(Command("newdate"))
