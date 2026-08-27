@@ -1,6 +1,7 @@
 from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -70,7 +71,25 @@ async def cmd_start(message: Message, db: AsyncSession, lang: str):
         if await _connect_trust_invite(message, db, payload[len("trust_"):], lang):
             return
 
+    user = await db.get(User, message.from_user.id)
+    if not user or not user.consent_given:
+        builder = InlineKeyboardBuilder()
+        builder.button(text=t("consent_accept_btn", lang), callback_data="consent:accept")
+        await message.answer(t("consent_notice", lang), reply_markup=builder.as_markup(), parse_mode="HTML")
+        return
+
     await message.answer(t("welcome", lang))
+
+
+@router.callback_query(lambda c: c.data == "consent:accept")
+async def consent_accept(callback: CallbackQuery, db: AsyncSession, lang: str):
+    user = await db.get(User, callback.from_user.id)
+    if user:
+        user.consent_given = True
+        await db.commit()
+    await callback.message.edit_reply_markup()
+    await callback.message.answer(t("consent_accepted", lang) + t("welcome", lang), parse_mode="HTML")
+    await callback.answer()
 
 
 @router.message(Command("language"))

@@ -41,6 +41,7 @@ class User(Base):
     first_name: Mapped[str | None] = mapped_column(String(128))
     language: Mapped[Language] = mapped_column(Enum(Language), default=Language.RU)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    consent_given: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
     sessions: Mapped[list["DateSession"]] = relationship(back_populates="user")
     contacts: Mapped[list["TrustedContact"]] = relationship(back_populates="user")

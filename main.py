@@ -26,6 +26,12 @@ async def main():
     # Create tables (use Alembic in production)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Safe migration: add consent_given if missing
+        await conn.execute(
+            __import__("sqlalchemy").text(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS consent_given BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+        )
 
     storage = RedisStorage.from_url(settings.redis_url)
     bot = Bot(

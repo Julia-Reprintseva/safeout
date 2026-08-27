@@ -79,6 +79,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "trust_link_owner_notified": "✅ {name} подключилась как доверенный контакт в Telegram!",
         "trust_link_invalid": "Эта ссылка недействительна или уже использована.",
         "trust_link_self": "Это твоя собственная ссылка-приглашение — отправь её тому человеку, кого добавляешь в контакты.",
+        "consent_notice": (
+            "🔒 <b>Прежде чем начать</b>\n\n"
+            "Для работы SafeOut я сохраняю:\n"
+            "• Твой Telegram ID и имя\n"
+            "• Данные о свидании: имя партнёра, место встречи, маршрут\n"
+            "• Телефоны и Telegram доверенных контактов\n"
+            "• Файлы, которые ты отправляешь (хранятся на серверах Telegram)\n\n"
+            "Данные используются только для отправки тревожных оповещений. "
+            "Я не передаю их третьим лицам.\n\n"
+            "Нажав «Принимаю», ты даёшь согласие на обработку персональных данных "
+            "в соответствии с <a href='https://reprintseva.ru/bots/safeout/privacy/'>Политикой конфиденциальности</a>."
+        ),
+        "consent_accept_btn": "✅ Принимаю",
+        "consent_accepted": "✅ Отлично! Теперь можно начать.\n\n",
         "skip": "/skip",
         "cancel": "Отмена",
     },
@@ -157,6 +171,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "trust_link_owner_notified": "✅ {name} connected as a trusted contact on Telegram!",
         "trust_link_invalid": "This link is invalid or already used.",
         "trust_link_self": "This is your own invite link — send it to the person you're adding as a contact.",
+        "consent_notice": (
+            "🔒 <b>Before we start</b>\n\n"
+            "To work, SafeOut stores:\n"
+            "• Your Telegram ID and name\n"
+            "• Date details: partner's name, meeting place, route\n"
+            "• Trusted contacts' phone numbers and Telegram accounts\n"
+            "• Files you send (stored on Telegram's servers)\n\n"
+            "Your data is used solely to send emergency alerts. "
+            "It is never shared with third parties.\n\n"
+            "By tapping «I agree», you consent to the processing of your personal data "
+            "under our <a href='https://reprintseva.ru/bots/safeout/privacy/en/'>Privacy Policy</a>."
+        ),
+        "consent_accept_btn": "✅ I agree",
+        "consent_accepted": "✅ Great! You're all set.\n\n",
         "skip": "/skip",
         "cancel": "Cancel",
     },
@@ -235,6 +263,21 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "trust_link_owner_notified": "✅ {name} Telegram'da güvenilen kişi olarak bağlandı!",
         "trust_link_invalid": "Bu bağlantı geçersiz veya zaten kullanılmış.",
         "trust_link_self": "Bu senin kendi davet bağlantın — kişi olarak eklediğin kişiye gönder.",
+        "consent_notice": (
+            "🔒 <b>Başlamadan önce</b>\n\n"
+            "SafeOut'un çalışması için şunları kaydediyorum:\n"
+            "• Telegram kimliğin ve adın\n"
+            "• Buluşma bilgilerin: kişinin adı, buluşma yeri, güzergah\n"
+            "• Güvenilen kişilerin telefon numaraları ve Telegram hesapları\n"
+            "• Gönderdiğin dosyalar (Telegram sunucularında saklanır)\n\n"
+            "Veriler yalnızca acil durum uyarıları göndermek için kullanılır. "
+            "Üçüncü taraflarla paylaşılmaz.\n\n"
+            "«Kabul ediyorum» butonuna basarak, "
+            "<a href='https://reprintseva.ru/bots/safeout/privacy/'>Gizlilik Politikası</a> "
+            "kapsamında kişisel verilerinin işlenmesine onay vermiş olursun."
+        ),
+        "consent_accept_btn": "✅ Kabul ediyorum",
+        "consent_accepted": "✅ Harika! Artık başlayabilirsin.\n\n",
         "skip": "/skip",
         "cancel": "İptal",
     },
