@@ -297,53 +297,58 @@ async def build_checklist_state(
     return state
 
 
-def render_checklist(state: dict, lang: str) -> tuple[str, bool]:
-    """Returns (message_text, all_critical_done).
-
-    Only unaddressed (None) critical items block start.
-    Items marked False (explicitly acknowledged as not done) do NOT block —
-    the user has consciously noted the gap and chosen to proceed.
-    """
+def render_checklist_text(state: dict, lang: str) -> str:
+    """Numbered list without block headers or decorative emoji."""
     lines = []
-    current_block = 0
-    all_critical_done = True
-
+    n = 0
     for item in CHECKLIST:
-        if item["block"] != current_block:
-            current_block = item["block"]
-            lines.append(f"\n<b>{BLOCK_TITLES[current_block][lang]}</b>")
-
+        n += 1
         status = state.get(item["key"])
         label = item[lang]
-
         if status is True:
             icon = "✅"
         elif status is False:
             icon = "❌"
-            # Not blocking — user acknowledged and decided to proceed anyway
         else:
-            icon = "⬜️"
-            if item["critical"]:
-                all_critical_done = False
-
-        critical_marker = " <b>(!)</b>" if item["critical"] and status is None else ""
-        lines.append(f"{icon} {label}{critical_marker}")
-
-    return "\n".join(lines), all_critical_done
+            icon = "⬜"
+        lines.append(f"{n}. {icon} {label}")
+    return "\n".join(lines)
 
 
-def checklist_kb(session_id: int, state: dict, lang: str, all_critical_done: bool) -> object:
-    """Keyboard: toggle buttons for manual items + start button.
-
-    Tapping cycles: ⬜️ → ✅ → ❌ → ⬜️
-    ❌ means "I know but I can't do this" — does not block start for critical items.
-    """
+def compact_checklist_kb(session_id: int, lang: str) -> object:
+    """Screen 1: just two buttons."""
     builder = InlineKeyboardBuilder()
+    start_text = {
+        "ru": "✅ Всё готово — начать",
+        "en": "✅ All good — start",
+        "tr": "✅ Hazır — başlat",
+    }[lang]
+    details_text = {
+        "ru": "⚠️ Кое-чего нет — посмотреть список",
+        "en": "⚠️ Something missing — show list",
+        "tr": "⚠️ Eksik var — listeyi gör",
+    }[lang]
+    builder.button(text=start_text, callback_data=f"session:start:{session_id}")
+    builder.button(text=details_text, callback_data=f"cl:details:{session_id}")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def detailed_checklist_kb(session_id: int, state: dict, lang: str) -> object:
+    """Screen 2: toggle buttons + confirm all + start + back."""
+    builder = InlineKeyboardBuilder()
+
+    confirm_all_text = {
+        "ru": "✅ Отметить всё выполненным",
+        "en": "✅ Mark everything done",
+        "tr": "✅ Hepsini tamamlandı say",
+    }[lang]
+    builder.button(text=confirm_all_text, callback_data=f"cl:confirm_all:{session_id}")
 
     btn_lang = f"btn_{lang}"
     for item in CHECKLIST:
         if item["auto_field"] is not None:
-            continue  # auto-checked, no button needed
+            continue
         key = item["key"]
         status = state.get(key)
         if status is True:
@@ -351,35 +356,46 @@ def checklist_kb(session_id: int, state: dict, lang: str, all_critical_done: boo
         elif status is False:
             icon = "❌"
         else:
-            icon = "⬜️"
+            icon = "⬜"
         label = item.get(btn_lang) or item[lang][:28]
-        builder.button(
-            text=f"{icon} {label}",
-            callback_data=f"cl:toggle:{session_id}:{key}",
-        )
+        builder.button(text=f"{icon} {label}", callback_data=f"cl:toggle:{session_id}:{key}")
 
-    builder.adjust(1)
-
-    if all_critical_done:
-        start_text = {
-            "ru": "▶️ Всё готово — начать свидание",
-            "en": "▶️ All set — start date",
-            "tr": "▶️ Hazır — buluşmayı başlat",
-        }[lang]
-        builder.button(
-            text=start_text,
-            callback_data=f"session:start:{session_id}",
-        )
-    else:
-        warn_text = {
-            "ru": "⚠️ Заполни обязательные пункты (!) чтобы начать",
-            "en": "⚠️ Complete required items (!) to start",
-            "tr": "⚠️ Başlamak için zorunlu maddeleri (!) tamamla",
-        }[lang]
-        builder.button(text=warn_text, callback_data="cl:noop")
+    start_text = {
+        "ru": "▶️ Начать свидание",
+        "en": "▶️ Start date",
+        "tr": "▶️ Buluşmayı başlat",
+    }[lang]
+    back_text = {
+        "ru": "← Назад",
+        "en": "← Back",
+        "tr": "← Geri",
+    }[lang]
+    builder.button(text=start_text, callback_data=f"session:start:{session_id}")
+    builder.button(text=back_text, callback_data=f"cl:compact:{session_id}")
 
     builder.adjust(1)
     return builder.as_markup()
+
+
+def _redis_sets(redis, user_id: int, session_id: int) -> tuple[set, set]:
+    yes_key = f"cl:{user_id}:{session_id}"
+    no_key = f"cl:no:{user_id}:{session_id}"
+    def _d(raw):
+        return {v.decode() if isinstance(v, bytes) else v for v in raw}
+    return _d(redis.smembers(yes_key)), _d(redis.smembers(no_key))
+
+
+async def _load_state(session_id: int, user_id: int, db: AsyncSession, redis):
+    session = await db.get(DateSession, session_id)
+    contacts = (await db.execute(
+        select(TrustedContact).where(TrustedContact.user_id == (session.user_id if session else user_id))
+    )).scalars().all()
+    files = (await db.execute(
+        select(SessionFile).where(SessionFile.session_id == session_id)
+    )).scalars().all()
+    manual_yes, manual_no = _redis_sets(redis, user_id, session_id)
+    state = await build_checklist_state(session, contacts, files, manual_yes, manual_no)
+    return state, manual_yes, manual_no
 
 
 async def show_checklist(
@@ -390,43 +406,36 @@ async def show_checklist(
     manual_yes: set[str] | None = None,
     manual_no: set[str] | None = None,
 ):
-    if manual_yes is None:
-        manual_yes = set()
-    if manual_no is None:
-        manual_no = set()
-
-    session = await db.get(DateSession, session_id)
-
-    contacts_result = await db.execute(
-        select(TrustedContact).where(
-            TrustedContact.user_id == (session.user_id if session else 0)
-        )
-    )
-    contacts = contacts_result.scalars().all()
-
-    files_result = await db.execute(
-        select(SessionFile).where(SessionFile.session_id == session_id)
-    )
-    files = files_result.scalars().all()
-
-    state = await build_checklist_state(session, contacts, files, manual_yes, manual_no)
-    text, all_critical_done = render_checklist(state, lang)
-
+    """Show compact (screen 1) checklist."""
     header = {
-        "ru": "📋 <b>Чек-лист безопасности SafeOut</b>\n\n✅ Выполнено   ❌ Не выполнено (нажми ещё раз)   ⬜️ Нажми чтобы отметить   <b>(!)</b> Обязательно\n",
-        "en": "📋 <b>SafeOut Safety Checklist</b>\n\n✅ Done   ❌ Not done (tap again)   ⬜️ Tap to confirm   <b>(!)</b> Required\n",
-        "tr": "📋 <b>SafeOut Güvenlik Kontrol Listesi</b>\n\n✅ Tamam   ❌ Yapılmadı (tekrar dokun)   ⬜️ Onaylamak için dokun   <b>(!)</b> Zorunlu\n",
+        "ru": "📋 <b>Чек-лист безопасности SafeOut</b>\n\nПройдись по списку перед свиданием. Если всё в порядке — нажми «Начать».",
+        "en": "📋 <b>SafeOut Safety Checklist</b>\n\nGo through the list before your date. If everything's fine — tap Start.",
+        "tr": "📋 <b>SafeOut Güvenlik Kontrol Listesi</b>\n\nBuluşmadan önce listeyi gözden geçir. Her şey yolundaysa — Başlat'a dokun.",
     }[lang]
-
-    full_text = header + text
-    kb = checklist_kb(session_id, state, lang, all_critical_done)
+    kb = compact_checklist_kb(session_id, lang)
 
     if hasattr(message_or_callback, "message"):
-        # it's a CallbackQuery
-        await message_or_callback.message.edit_text(full_text, reply_markup=kb)
+        await message_or_callback.message.edit_text(header, reply_markup=kb, parse_mode="HTML")
         await message_or_callback.answer()
     else:
-        await message_or_callback.answer(full_text, reply_markup=kb)
+        await message_or_callback.answer(header, reply_markup=kb, parse_mode="HTML")
+
+
+async def _show_detailed(callback: "CallbackQuery", session_id: int, db: AsyncSession, lang: str, redis):
+    """Show detailed (screen 2) checklist."""
+    user_id = callback.from_user.id
+    state, _, _ = await _load_state(session_id, user_id, db, redis)
+    text = render_checklist_text(state, lang)
+
+    header = {
+        "ru": "📋 <b>Список безопасности</b>\n\n✅ выполнено   ❌ не выполнено   ⬜ не отмечено\n\n",
+        "en": "📋 <b>Safety checklist</b>\n\n✅ done   ❌ not done   ⬜ unchecked\n\n",
+        "tr": "📋 <b>Güvenlik listesi</b>\n\n✅ tamam   ❌ yapılmadı   ⬜ işaretlenmedi\n\n",
+    }[lang]
+
+    kb = detailed_checklist_kb(session_id, state, lang)
+    await callback.message.edit_text(header + text, reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
 
 
 # ---------------------------------------------------------------------------
@@ -464,13 +473,49 @@ async def cmd_checklist(message: Message, db: AsyncSession, lang: str):
     await show_checklist(message, session.id, db, lang, manual_yes, manual_no)
 
 
+@router.callback_query(lambda c: c.data and c.data.startswith("cl:details:"))
+async def show_details(callback: CallbackQuery, db: AsyncSession, lang: str):
+    session_id = int(callback.data.split(":")[2])
+    from core.tasks import celery_app
+    redis = celery_app.backend.client
+    await _show_detailed(callback, session_id, db, lang, redis)
+
+
+@router.callback_query(lambda c: c.data and c.data.startswith("cl:compact:"))
+async def show_compact(callback: CallbackQuery, db: AsyncSession, lang: str):
+    session_id = int(callback.data.split(":")[2])
+    await show_checklist(callback, session_id, db, lang)
+
+
+@router.callback_query(lambda c: c.data and c.data.startswith("cl:confirm_all:"))
+async def confirm_all(callback: CallbackQuery, db: AsyncSession, lang: str):
+    session_id = int(callback.data.split(":")[2])
+    user_id = callback.from_user.id
+
+    from core.tasks import celery_app
+    redis = celery_app.backend.client
+
+    yes_key = f"cl:{user_id}:{session_id}"
+    manual_items = [item["key"] for item in CHECKLIST if item["auto_field"] is None]
+    for key in manual_items:
+        redis.sadd(yes_key, key)
+    redis.expire(yes_key, 86400 * 7)
+
+    # Remove any previously marked-no items
+    no_key = f"cl:no:{user_id}:{session_id}"
+    for key in manual_items:
+        redis.srem(no_key, key)
+
+    await _show_detailed(callback, session_id, db, lang, redis)
+
+
 @router.callback_query(lambda c: c.data and c.data.startswith("cl:toggle:"))
 async def toggle_item(callback: CallbackQuery, db: AsyncSession, lang: str):
     _, _, session_id_str, key = callback.data.split(":", 3)
     session_id = int(session_id_str)
 
     from core.tasks import celery_app
-    redis = celery_app.backend.client  # reuse Celery's Redis connection
+    redis = celery_app.backend.client
 
     yes_key = f"cl:{callback.from_user.id}:{session_id}"
     no_key = f"cl:no:{callback.from_user.id}:{session_id}"
@@ -483,30 +528,13 @@ async def toggle_item(callback: CallbackQuery, db: AsyncSession, lang: str):
 
     # Cycle: None → True → False → None
     if key in manual_yes:
-        # True → False
         redis.srem(yes_key, key)
         redis.sadd(no_key, key)
         redis.expire(no_key, 86400 * 7)
-        manual_yes.discard(key)
-        manual_no.add(key)
     elif key in manual_no:
-        # False → None
         redis.srem(no_key, key)
-        manual_no.discard(key)
     else:
-        # None → True
         redis.sadd(yes_key, key)
         redis.expire(yes_key, 86400 * 7)
-        manual_yes.add(key)
 
-    await show_checklist(callback, session_id, db, lang, manual_yes, manual_no)
-
-
-@router.callback_query(F.data == "cl:noop")
-async def noop(callback: CallbackQuery, lang: str):
-    warn = {
-        "ru": "⚠️ Заполни все обязательные пункты (!) чтобы начать свидание",
-        "en": "⚠️ Complete all required (!) items to start the date",
-        "tr": "⚠️ Buluşmayı başlatmak için tüm zorunlu (!) maddeleri tamamla",
-    }[lang]
-    await callback.answer(warn, show_alert=True)
+    await _show_detailed(callback, session_id, db, lang, redis)
