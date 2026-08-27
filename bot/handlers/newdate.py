@@ -197,21 +197,19 @@ async def step_return_time(message: Message, state: FSMContext, db: AsyncSession
     await state.update_data(session_id=session_obj.id)
     await state.set_state(NewDate.files)
 
-    await message.answer(
+    done_msg = await message.answer(
         t("ask_files", lang),
         reply_markup=files_done_kb(lang, session_obj.id),
     )
+    await state.update_data(done_msg_id=done_msg.message_id)
 
 
-async def _handle_file(message: Message, state: FSMContext, db: AsyncSession, file_type: FileType):
+async def _handle_file(message: Message, state: FSMContext, db: AsyncSession, file_type: FileType, lang: str):
     data = await state.get_data()
     session_id = data.get("session_id")
     if not session_id:
         return
 
-    # Store Telegram's own file_id rather than re-uploading to S3/R2 (not
-    # configured by default). api/routes.py proxies it through the Bot API
-    # when rendering the alert page for trusted contacts.
     if file_type == FileType.PHOTO:
         file_id = message.photo[-1].file_id
         original_name = None
@@ -224,22 +222,34 @@ async def _handle_file(message: Message, state: FSMContext, db: AsyncSession, fi
 
     db.add(SessionFile(session_id=session_id, file_type=file_type, s3_key=file_id, original_name=original_name))
     await db.commit()
-    await message.react([])  # acknowledge silently
+
+    # Move the "done" button to the bottom after each new file
+    old_msg_id = data.get("done_msg_id")
+    if old_msg_id:
+        try:
+            await message.bot.delete_message(message.chat.id, old_msg_id)
+        except Exception:
+            pass
+    done_msg = await message.answer(
+        t("ask_files", lang),
+        reply_markup=files_done_kb(lang, session_id),
+    )
+    await state.update_data(done_msg_id=done_msg.message_id)
 
 
 @router.message(NewDate.files, F.photo)
-async def file_photo(message: Message, state: FSMContext, db: AsyncSession):
-    await _handle_file(message, state, db, FileType.PHOTO)
+async def file_photo(message: Message, state: FSMContext, db: AsyncSession, lang: str):
+    await _handle_file(message, state, db, FileType.PHOTO, lang)
 
 
 @router.message(NewDate.files, F.document)
-async def file_document(message: Message, state: FSMContext, db: AsyncSession):
-    await _handle_file(message, state, db, FileType.DOCUMENT)
+async def file_document(message: Message, state: FSMContext, db: AsyncSession, lang: str):
+    await _handle_file(message, state, db, FileType.DOCUMENT, lang)
 
 
 @router.message(NewDate.files, F.voice)
-async def file_voice(message: Message, state: FSMContext, db: AsyncSession):
-    await _handle_file(message, state, db, FileType.VOICE)
+async def file_voice(message: Message, state: FSMContext, db: AsyncSession, lang: str):
+    await _handle_file(message, state, db, FileType.VOICE, lang)
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("files:done:"))
@@ -266,7 +276,7 @@ async def start_session(callback: CallbackQuery, db: AsyncSession, lang: str):
         select(TrustedContact).where(TrustedContact.user_id == callback.from_user.id)
     )
     contacts = result.scalars().all()
-    if not any(c.phone or c.telegram_id for c in contacts):
+    if not contacts:
         await callback.answer(t("no_reachable_contacts", lang), show_alert=True)
         return
 
