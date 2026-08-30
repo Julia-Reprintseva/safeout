@@ -7,22 +7,23 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ru": {
         "welcome": (
             "👋 Привет! Я SafeOut — бот безопасности для свиданий с незнакомцами.\n\n"
-            "Перед свиданием я помогу сохранить всю информацию о человеке и месте встречи. "
-            "Если ты не выйдешь на связь — оповещу доверенные контакты, которые подключились ко мне в Telegram.\n\n"
-            "Команды:\n"
-            "/newdate — создать новое свидание\n"
-            "/contacts — управление доверенными контактами\n"
-            "/language — сменить язык\n"
-            "/help — помощь"
+            "Перед свиданием сохраню всё: имя, место, машину. "
+            "Каждые 15 минут буду спрашивать как ты. "
+            "Если не ответишь — напишу доверенным контактам.\n\n"
+            "/newdate — создать свидание\n"
+            "/contacts — доверенные контакты\n"
+            "/tubiki — моя коллекция тюбиков 🙈\n"
+            "/clear — удалить данные\n"
+            "/language — сменить язык"
         ),
         "choose_language": "Выбери язык / Choose language / Dil seçin:",
         "language_set": "✅ Язык установлен: Русский",
         "new_date_start": "📋 Создаём новое свидание. Как зовут человека или его ник?",
-        "ask_profile_url": "🔗 Ссылка на его профиль (Tinder, ВКонтакте, Instagram и т.д.)? Или нажми /skip",
+        "ask_profile_url": "🔗 Ссылка на его профиль (Tinder, ВКонтакте, Instagram и т.д.)?",
         "ask_meeting_place": "📍 Где вы встречаетесь впервые? (адрес или название, например: кафе «Мята», ул. Ленина 5)",
-        "ask_destination": "🗺 Куда поедете дальше или что ещё планируете? (кино, его место, другой ресторан и т.д.) Или /skip если нет планов после",
-        "ask_car": "🚗 Номер и описание машины (марка, цвет)? Или /skip",
-        "ask_extra": "📝 Любая другая важная информация? Или /skip",
+        "ask_destination": "🗺 Куда поедете дальше или что ещё планируете? (кино, его место, другой ресторан и т.д.)",
+        "ask_car": "🚗 Номер и описание машины (марка, цвет)?",
+        "ask_extra": "📝 Любая другая важная информация?",
         "ask_return_time": "⏰ Когда планируешь вернуться? (например: 23:00 или через 3 часа)",
         "ask_files": (
             "📎 Отправь фото, скриншоты переписки, голосовые — всё что есть.\n"
@@ -47,12 +48,29 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ping_ok_btn": "✅ Всё хорошо",
         "ping_sos_btn": "🆘 SOS — нужна помощь",
         "ping_ok_response": "✅ Отлично! Следующая проверка через {interval} минут.",
-        "sos_triggered": (
-            "🆘 SOS активирован. Прямо сейчас оповещаю доверенные контакты, которые подключились в Telegram.\n"
-            "Они получат ссылку со всеми твоими данными."
-        ),
-        "safe_return": "🏠 Рада, что ты дома! Ну как это было? Понравилось или очередной тюбик? 😄",
+        "sos_triggered": "🆘 SOS активирован. Контакты уже получили сообщение со всеми данными о свидании.",
+        "safe_return": "🏠 Рада, что ты дома и в безопасности! Ну как, довольна? Или очередной тюбик? 😄",
+        "review_fire": "🔥 Огонь",
+        "review_ok": "😐 Норм",
+        "review_tubik": "🙈 Тюбик",
+        "review_thanks_fire": "🔥 Вот это успех! Рада за тебя 🥂",
+        "review_thanks_ok": "😐 Ну, не каждое свидание — история. Главное — дома и в безопасности 🏠",
+        "review_thanks_tubik": "🙈 Понятно. Как его звали? Запишу в коллекцию.",
+        "tubik_saved": "📝 Записала. Коллекция пополнена 😄",
+        "tubik_list_empty": "Коллекция пока пуста — хороший знак! 🎉",
+        "tubik_list_header": "🙈 Коллекция тюбиков:\n\n",
         "end_session_btn": "🏠 Я дома, всё хорошо",
+        "already_active": "⚠️ У тебя уже есть активное свидание. Сначала заверши его — нажми «Я дома, всё хорошо».",
+        "fallback_hint": (
+            "Не знаю, что с этим делать 🙂\n\n"
+            "Вот что я умею:\n"
+            "/newdate — создать новое свидание\n"
+            "/contacts — доверенные контакты\n"
+            "/tubiki — коллекция тюбиков 🙈\n"
+            "/clear — удалить данные\n"
+            "/language — сменить язык\n"
+            "/help — помощь"
+        ),
         "no_contacts_warning": (
             "⚠️ У тебя нет доверенных контактов. "
             "Добавь хотя бы одного через /contacts, иначе некому будет сообщить об опасности."
@@ -61,9 +79,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "contacts_empty": "У тебя пока нет доверенных контактов.\nДобавь первого:",
         "add_contact_btn": "➕ Добавить контакт",
         "ask_contact_name": "Как зовут этого человека?",
-        "ask_contact_phone": "Номер телефона (с кодом страны, например +79001234567)? Или /skip",
-        "ask_contact_email": "Email? Или /skip",
-        "ask_contact_username": "Ник в Telegram (@masha_example)? Или /skip",
+        "ask_contact_phone": "Номер телефона (с кодом страны, например +79001234567)?",
+        "ask_contact_email": "Email?",
+        "ask_contact_username": "Ник в Telegram (@masha_example)?",
         "contact_saved": "✅ Контакт {name} сохранён!",
         "contact_invite_link": (
             "Чтобы я могла написать {name} в Telegram, отправь ей эту ссылку — "
@@ -110,11 +128,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "choose_language": "Choose language / Выбери язык / Dil seçin:",
         "language_set": "✅ Language set: English",
         "new_date_start": "📋 Creating a new date. What's the person's name or username?",
-        "ask_profile_url": "🔗 Link to their profile (Tinder, Instagram, etc.)? Or /skip",
+        "ask_profile_url": "🔗 Link to their profile (Tinder, Instagram, etc.)?",
         "ask_meeting_place": "📍 Where are you meeting for the first time? (address or name, e.g.: Coffee House, 5 Main St)",
-        "ask_destination": "🗺 Where will you go next or what else is planned? (cinema, their place, another restaurant, etc.) Or /skip if no further plans",
-        "ask_car": "🚗 Car plate and description (make, colour)? Or /skip",
-        "ask_extra": "📝 Any other important information? Or /skip",
+        "ask_destination": "🗺 Where will you go next or what else is planned? (cinema, their place, another restaurant, etc.)",
+        "ask_car": "🚗 Car plate and description (make, colour)?",
+        "ask_extra": "📝 Any other important information?",
         "ask_return_time": "⏰ When do you plan to be back? (e.g. 23:00 or in 3 hours)",
         "ask_files": (
             "📎 Send photos, chat screenshots, voice messages — anything you have.\n"
@@ -139,12 +157,28 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ping_ok_btn": "✅ I'm okay",
         "ping_sos_btn": "🆘 SOS — I need help",
         "ping_ok_response": "✅ Great! Next check-in in {interval} minutes.",
-        "sos_triggered": (
-            "🆘 SOS activated. Alerting the trusted contacts who've connected on Telegram right now.\n"
-            "They'll receive a link with all your details."
-        ),
-        "safe_return": "🏠 So glad you're home! So — how did it go? A keeper or a total write-off? 😄",
+        "sos_triggered": "🆘 SOS activated. Your contacts have been sent all your date details.",
+        "safe_return": "🏠 So glad you're home! How did it go?",
+        "review_fire": "🔥 Amazing",
+        "review_ok": "😐 Meh",
+        "review_tubik": "🙈 Total write-off",
+        "review_thanks_fire": "🔥 That's a win! Happy for you 🥂",
+        "review_thanks_ok": "😐 Not every date is a story. Home and safe — that's what counts 🏠",
+        "review_thanks_tubik": "🙈 Got it. What was his name? Adding to the collection.",
+        "tubik_saved": "📝 Added. The collection grows 😄",
+        "tubik_list_empty": "Collection is empty — great sign! 🎉",
+        "tubik_list_header": "🙈 The write-off collection:\n\n",
         "end_session_btn": "🏠 I'm home, I'm safe",
+        "already_active": "⚠️ You already have an active date. End it first — press \"I'm home, I'm safe\".",
+        "fallback_hint": (
+            "Not sure what to do with that 🙂\n\n"
+            "Here's what I can do:\n"
+            "/newdate — start a new date session\n"
+            "/contacts — manage trusted contacts\n"
+            "/clear — delete your data\n"
+            "/language — change language\n"
+            "/help — help"
+        ),
         "no_contacts_warning": (
             "⚠️ You have no trusted contacts. "
             "Add at least one via /contacts, otherwise no one will be notified in an emergency."
@@ -153,9 +187,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "contacts_empty": "You don't have any trusted contacts yet.\nAdd your first one:",
         "add_contact_btn": "➕ Add contact",
         "ask_contact_name": "What's this person's name?",
-        "ask_contact_phone": "Phone number (with country code, e.g. +447911123456)? Or /skip",
-        "ask_contact_email": "Email? Or /skip",
-        "ask_contact_username": "Telegram username (@masha_example)? Or /skip",
+        "ask_contact_phone": "Phone number (with country code, e.g. +447911123456)?",
+        "ask_contact_email": "Email?",
+        "ask_contact_username": "Telegram username (@masha_example)?",
         "contact_saved": "✅ Contact {name} saved!",
         "contact_invite_link": (
             "So I can message {name} on Telegram, send them this link — "
@@ -202,11 +236,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "choose_language": "Dil seçin / Choose language / Выбери язык:",
         "language_set": "✅ Dil ayarlandı: Türkçe",
         "new_date_start": "📋 Yeni bir buluşma oluşturuyoruz. Kişinin adı veya kullanıcı adı nedir?",
-        "ask_profile_url": "🔗 Profiline bağlantı (Tinder, Instagram vb.)? Veya /skip",
+        "ask_profile_url": "🔗 Profiline bağlantı (Tinder, Instagram vb.)?",
         "ask_meeting_place": "📍 İlk buluşma yeri nerede? (adres veya yer adı, örn: Merkez Kafe, Atatürk Cd. 5)",
-        "ask_destination": "🗺 Sonra nereye gideceksiniz veya başka planlarınız var mı? (sinema, evi, başka restoran vb.) Plan yoksa /skip",
-        "ask_car": "🚗 Araç plakası ve tanımı (marka, renk)? Veya /skip",
-        "ask_extra": "📝 Başka önemli bilgi var mı? Veya /skip",
+        "ask_destination": "🗺 Sonra nereye gideceksiniz veya başka planlarınız var mı? (sinema, evi, başka restoran vb.)",
+        "ask_car": "🚗 Araç plakası ve tanımı (marka, renk)?",
+        "ask_extra": "📝 Başka önemli bilgi var mı?",
         "ask_return_time": "⏰ Ne zaman geri dönmeyi planlıyorsun? (örn: 23:00 veya 3 saat sonra)",
         "ask_files": (
             "📎 Fotoğraf, sohbet ekran görüntüsü, sesli mesaj — ne varsa gönder.\n"
@@ -231,11 +265,27 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ping_ok_btn": "✅ İyiyim",
         "ping_sos_btn": "🆘 SOS — Yardıma ihtiyacım var",
         "ping_ok_response": "✅ Harika! Bir sonraki kontrol {interval} dakika sonra.",
-        "sos_triggered": (
-            "🆘 SOS etkinleştirildi. Şu anda Telegram'da bağlı güvenilen kişilerin uyarılıyor.\n"
-            "Tüm bilgilerini içeren bir bağlantı alacaklar."
+        "sos_triggered": "🆘 SOS etkinleştirildi. Kişilerinin tüm randevu bilgilerin gönderildi.",
+        "safe_return": "🏠 Evde olduğuna sevindim! Nasıldı peki?",
+        "review_fire": "🔥 Harikaydı",
+        "review_ok": "😐 İdare eder",
+        "review_tubik": "🙈 Berbattı",
+        "review_thanks_fire": "🔥 Ne güzel! Mutluyum senin için 🥂",
+        "review_thanks_ok": "😐 Her randevu bir hikaye olmak zorunda değil. Evde ve güvendesin — bu yeter 🏠",
+        "review_thanks_tubik": "🙈 Anladım. Adı neydi? Koleksiyona ekleyeyim.",
+        "tubik_saved": "📝 Eklendi. Koleksiyon büyüyor 😄",
+        "tubik_list_empty": "Koleksiyon henüz boş — iyi işaret! 🎉",
+        "tubik_list_header": "🙈 Berbat randevular koleksiyonu:\n\n",
+        "already_active": "⚠️ Zaten aktif bir randevun var. Önce onu bitir — \"Evdeyim, güvendeyim\" düğmesine bas.",
+        "fallback_hint": (
+            "Bununla ne yapacağımı bilmiyorum 🙂\n\n"
+            "Yapabileceklerim:\n"
+            "/newdate — yeni randevu başlat\n"
+            "/contacts — güvenilen kişileri yönet\n"
+            "/clear — verilerini sil\n"
+            "/language — dili değiştir\n"
+            "/help — yardım"
         ),
-        "safe_return": "🏠 Evde olduğuna sevindim! Nasıldı peki? Tekrar görecek misin yoksa silip attın mı? 😄",
         "end_session_btn": "🏠 Evdeyim, güvendeyim",
         "no_contacts_warning": (
             "⚠️ Güvenilen kişin yok. "
@@ -245,9 +295,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "contacts_empty": "Henüz güvenilen kişin yok.\nİlkini ekle:",
         "add_contact_btn": "➕ Kişi ekle",
         "ask_contact_name": "Bu kişinin adı nedir?",
-        "ask_contact_phone": "Telefon numarası (ülke koduyla, örn. +905001234567)? Veya /skip",
-        "ask_contact_email": "E-posta? Veya /skip",
-        "ask_contact_username": "Telegram kullanıcı adı (@masha_example)? Veya /skip",
+        "ask_contact_phone": "Telefon numarası (ülke koduyla, örn. +905001234567)?",
+        "ask_contact_email": "E-posta?",
+        "ask_contact_username": "Telegram kullanıcı adı (@masha_example)?",
         "contact_saved": "✅ {name} kişisi kaydedildi!",
         "contact_invite_link": (
             "{name} kişisine Telegram'dan yazabilmem için bu bağlantıyı gönder — "

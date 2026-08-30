@@ -10,7 +10,7 @@ next call transparently opens a fresh pool on its own loop.
 import asyncio
 from sqlalchemy import select
 from core.database import async_session_factory, engine
-from core.models import DateSession, User, TrustedContact
+from core.models import DateSession, SessionFile, User, TrustedContact
 
 
 async def _run(coro_factory):
@@ -46,19 +46,31 @@ def get_escalation_context(session_id: int) -> dict | None:
                 select(TrustedContact).where(TrustedContact.user_id == session.user_id)
             )
             contacts = result.scalars().all()
+            files_result = await db.execute(
+                select(SessionFile).where(SessionFile.session_id == session.id)
+            )
+            files = files_result.scalars().all()
+            has_location = session.last_lat is not None and session.last_lon is not None
+            has_files = len(files) > 0
             return {
                 "status": session.status.value,
                 "ping_generation": session.ping_generation,
+                "user_telegram_id": session.user_id,
                 "session_data": {
                     "session_id": session.id,
                     "alert_token": session.alert_token,
                     "user_name": (user.first_name if user and user.first_name else "пользователь"),
+                    "user_telegram_id": session.user_id,
+                    "user_username": user.username if user else None,
+                    "notes": session.notes,
                     "lang": user.language.value if user else "ru",
                     "date_name": session.date_name,
                     "meeting_place": session.meeting_place,
                     "destination": session.destination,
                     "car_plate": session.car_plate,
                     "date_profile_url": session.date_profile_url,
+                    "has_location": has_location,
+                    "has_files": has_files,
                     "contacts": [
                         {
                             "name": c.name,

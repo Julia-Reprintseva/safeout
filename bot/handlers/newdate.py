@@ -13,6 +13,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Ordered list of (state_key, question_i18n_key) for back navigation
 FLOW_STEPS = [
@@ -27,13 +28,13 @@ FLOW_STEPS = [
 _FLOW_KEYS = [s for s, _ in FLOW_STEPS]
 _FLOW_QUESTIONS = dict(FLOW_STEPS)
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 
-from core.models import DateSession, SessionFile, FileType, TrustedContact, SessionStatus
+from core.models import DateSession, SessionFile, FileType, TrustedContact, SessionStatus, Tubik
 from core.config import settings
 from core.tasks import escalate_sos, ping_user
 from bot.middlewares.i18n import t
-from bot.keyboards.main import start_date_kb, active_session_kb, files_done_kb
+from bot.keyboards.main import start_date_kb, active_session_kb, files_done_kb, skip_kb
 
 router = Router()
 
@@ -49,6 +50,11 @@ class NewDate(StatesGroup):
     extra = State()
     return_time = State()
     files = State()
+
+
+class TubikFlow(StatesGroup):
+    waiting_name = State()
+    waiting_comment = State()
 
 
 def _parse_return_time(text: str) -> datetime | None:
@@ -110,8 +116,26 @@ async def step_back(message: Message, state: FSMContext, lang: str):
     await message.answer(f"↩️ {t(question_key, lang)}")
 
 
+MAX_FIELD_LEN = 500
+
+
+def _truncate(text: str) -> str:
+    return text[:MAX_FIELD_LEN] if text else text
+
+
 @router.message(Command("newdate"))
 async def cmd_newdate(message: Message, state: FSMContext, db: AsyncSession, lang: str):
+    # Block if there's already an active session
+    active = await db.execute(
+        select(DateSession)
+        .where(DateSession.user_id == message.from_user.id)
+        .where(DateSession.status == SessionStatus.ACTIVE)
+    )
+    active_session = active.scalars().first()
+    if active_session:
+        await message.answer(t("already_active", lang), reply_markup=active_session_kb(lang, active_session.id))
+        return
+
     # Warn if no contacts
     result = await db.execute(
         select(TrustedContact).where(TrustedContact.user_id == message.from_user.id)
@@ -124,53 +148,73 @@ async def cmd_newdate(message: Message, state: FSMContext, db: AsyncSession, lan
     await state.set_state(NewDate.date_name)
 
 
-@router.message(NewDate.date_name)
+@router.message(NewDate.date_name, F.text, ~F.text.startswith("/"))
 async def step_date_name(message: Message, state: FSMContext, lang: str):
-    await state.update_data(date_name=message.text.strip())
-    await message.answer(t("ask_profile_url", lang))
+    await state.update_data(date_name=_truncate(message.text.strip()))
+    await message.answer(t("ask_profile_url", lang), reply_markup=skip_kb(lang))
     await state.set_state(NewDate.profile_url)
 
 
-@router.message(NewDate.profile_url)
+@router.message(NewDate.profile_url, F.text, ~F.text.startswith("/"))
 async def step_profile_url(message: Message, state: FSMContext, lang: str):
-    val = None if message.text.strip().lower() in SKIP_VALUES else message.text.strip()
-    await state.update_data(profile_url=val)
+    await state.update_data(profile_url=_truncate(message.text.strip()))
     await message.answer(t("ask_meeting_place", lang))
     await state.set_state(NewDate.meeting_place)
 
 
-@router.message(NewDate.meeting_place)
+@router.message(NewDate.meeting_place, F.text, ~F.text.startswith("/"))
 async def step_meeting_place(message: Message, state: FSMContext, lang: str):
-    await state.update_data(meeting_place=message.text.strip())
-    await message.answer(t("ask_destination", lang))
+    await state.update_data(meeting_place=_truncate(message.text.strip()))
+    await message.answer(t("ask_destination", lang), reply_markup=skip_kb(lang))
     await state.set_state(NewDate.destination)
 
 
-@router.message(NewDate.destination)
+@router.message(NewDate.destination, F.text, ~F.text.startswith("/"))
 async def step_destination(message: Message, state: FSMContext, lang: str):
-    val = None if message.text.strip().lower() in SKIP_VALUES else message.text.strip()
-    await state.update_data(destination=val)
-    await message.answer(t("ask_car", lang))
+    await state.update_data(destination=message.text.strip())
+    await message.answer(t("ask_car", lang), reply_markup=skip_kb(lang))
     await state.set_state(NewDate.car)
 
 
-@router.message(NewDate.car)
+@router.message(NewDate.car, F.text, ~F.text.startswith("/"))
 async def step_car(message: Message, state: FSMContext, lang: str):
-    val = None if message.text.strip().lower() in SKIP_VALUES else message.text.strip()
-    await state.update_data(car=val)
-    await message.answer(t("ask_extra", lang))
+    await state.update_data(car=message.text.strip())
+    await message.answer(t("ask_extra", lang), reply_markup=skip_kb(lang))
     await state.set_state(NewDate.extra)
 
 
-@router.message(NewDate.extra)
+@router.message(NewDate.extra, F.text, ~F.text.startswith("/"))
 async def step_extra(message: Message, state: FSMContext, lang: str):
-    val = None if message.text.strip().lower() in SKIP_VALUES else message.text.strip()
-    await state.update_data(extra=val)
+    await state.update_data(extra=message.text.strip())
     await message.answer(t("ask_return_time", lang))
     await state.set_state(NewDate.return_time)
 
 
-@router.message(NewDate.return_time)
+@router.callback_query(F.data == "step:skip", StateFilter(NewDate.profile_url, NewDate.destination, NewDate.car, NewDate.extra))
+async def step_skip(callback: CallbackQuery, state: FSMContext, db: AsyncSession, lang: str):
+    """Handle 'Пропустить' button — advance FSM without saving a value."""
+    current = await state.get_state()
+    await callback.answer()
+
+    if current == NewDate.profile_url:
+        await state.update_data(profile_url=None)
+        await callback.message.answer(t("ask_meeting_place", lang))
+        await state.set_state(NewDate.meeting_place)
+    elif current == NewDate.destination:
+        await state.update_data(destination=None)
+        await callback.message.answer(t("ask_car", lang), reply_markup=skip_kb(lang))
+        await state.set_state(NewDate.car)
+    elif current == NewDate.car:
+        await state.update_data(car=None)
+        await callback.message.answer(t("ask_extra", lang), reply_markup=skip_kb(lang))
+        await state.set_state(NewDate.extra)
+    elif current == NewDate.extra:
+        await state.update_data(extra=None)
+        await callback.message.answer(t("ask_return_time", lang))
+        await state.set_state(NewDate.return_time)
+
+
+@router.message(NewDate.return_time, F.text, F.text.func(lambda t: not t.startswith("/") or t.strip().lower() == "/skip"))
 async def step_return_time(message: Message, state: FSMContext, db: AsyncSession, lang: str):
     return_dt = _parse_return_time(message.text)
     await state.update_data(return_time=return_dt.isoformat() if return_dt else None)
@@ -298,7 +342,6 @@ async def start_session(callback: CallbackQuery, db: AsyncSession, lang: str):
         t("session_started", lang, interval=settings.ping_interval_minutes),
         reply_markup=active_session_kb(lang, session_id),
     )
-    await callback.answer()
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("session:sos:"))
@@ -314,7 +357,7 @@ async def trigger_sos(callback: CallbackQuery, db: AsyncSession, lang: str):
 
     escalate_sos.delay(session_id)
 
-    await callback.message.answer(t("sos_triggered", lang))
+    await callback.message.answer(t("sos_triggered", lang), reply_markup=active_session_kb(lang, session_id))
     await callback.answer()
 
 
@@ -333,7 +376,13 @@ async def end_session(callback: CallbackQuery, db: AsyncSession, lang: str):
     await db.commit()
 
     await callback.message.edit_reply_markup()
-    await callback.message.answer(t("safe_return", lang))
+
+    builder = InlineKeyboardBuilder()
+    builder.button(text=t("review_fire", lang),  callback_data=f"review:fire:{session_id}")
+    builder.button(text=t("review_ok", lang),    callback_data=f"review:ok:{session_id}")
+    builder.button(text=t("review_tubik", lang), callback_data=f"review:tubik:{session_id}")
+    builder.adjust(3)
+    await callback.message.answer(t("safe_return", lang), reply_markup=builder.as_markup())
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("ping:ok"))
@@ -374,7 +423,12 @@ async def ping_sos(callback: CallbackQuery, db: AsyncSession, lang: str):
     )
     session_obj = result.scalars().first()
     if session_obj:
-        await trigger_sos.__wrapped__(callback, db, lang)
+        # Reuse trigger_sos logic directly
+        session_obj.status = SessionStatus.SOS
+        await db.commit()
+        escalate_sos.delay(session_obj.id)
+        await callback.message.answer(t("sos_triggered", lang), reply_markup=active_session_kb(lang, session_obj.id))
+        await callback.answer()
 
 
 @router.message(NewDate.files, F.location)
@@ -419,3 +473,92 @@ async def active_location_update(message: Message, db: AsyncSession):
 async def active_location_edit(message: Message, db: AsyncSession):
     """Telegram sends periodic live-location updates as message edits."""
     await _save_active_location(message, db)
+
+
+# ---------------------------------------------------------------------------
+# Отзыв после свидания
+# ---------------------------------------------------------------------------
+
+@router.callback_query(lambda c: c.data and c.data.startswith("review:"))
+async def handle_review(callback: CallbackQuery, db: AsyncSession, lang: str, state: FSMContext):
+    parts = callback.data.split(":")
+    verdict = parts[1]
+    session_id = int(parts[2])
+
+    session_obj = await db.get(DateSession, session_id)
+    if session_obj:
+        session_obj.review = verdict
+        await db.commit()
+
+    await callback.message.edit_reply_markup()
+
+    if verdict == "tubik":
+        await callback.message.answer(t("review_thanks_tubik", lang))
+        await state.set_state(TubikFlow.waiting_name)
+        await state.update_data(tubik_session_id=session_id)
+    elif verdict == "fire":
+        await callback.message.answer(t("review_thanks_fire", lang))
+    else:
+        await callback.message.answer(t("review_thanks_ok", lang))
+
+    await callback.answer()
+
+
+@router.message(TubikFlow.waiting_name, F.text, F.text.func(lambda t: not t.startswith("/") or t.strip().lower() == "/skip"))
+async def tubik_got_name(message: Message, db: AsyncSession, lang: str, state: FSMContext):
+    name = message.text.strip()[:256]
+    await state.update_data(tubik_name=name)
+    await state.set_state(TubikFlow.waiting_comment)
+    ask = {"ru": "Что запомнилось? (или /skip)", "en": "What do you remember? (or /skip)", "tr": "Ne aklında kaldı? (veya /skip)"}.get(lang, "Что запомнилось?")
+    await message.answer(ask)
+
+
+@router.message(TubikFlow.waiting_comment, F.text, F.text.func(lambda t: not t.startswith("/") or t.strip().lower() == "/skip"))
+async def tubik_got_comment(message: Message, db: AsyncSession, lang: str, state: FSMContext):
+    data = await state.get_data()
+    comment = None if message.text.strip() == "/skip" else message.text.strip()[:500]
+    tubik = Tubik(
+        user_id=message.from_user.id,
+        name=data["tubik_name"],
+        comment=comment,
+        date_session_id=data.get("tubik_session_id"),
+    )
+    db.add(tubik)
+    await db.commit()
+    await state.clear()
+    await message.answer(t("tubik_saved", lang))
+
+
+@router.message(Command("tubiki"))
+async def cmd_tubiki(message: Message, db: AsyncSession, lang: str):
+    result = await db.execute(
+        select(Tubik)
+        .where(Tubik.user_id == message.from_user.id)
+        .order_by(Tubik.created_at.desc())
+    )
+    tubiks = result.scalars().all()
+
+    if not tubiks:
+        await message.answer(t("tubik_list_empty", lang))
+        return
+
+    for tubik in tubiks:
+        date = tubik.created_at.strftime("%d.%m.%Y")
+        text = f"<b>{tubik.name}</b> — {date}"
+        if tubik.comment:
+            text += f"\n{tubik.comment}"
+
+        builder = InlineKeyboardBuilder()
+        builder.button(text="🗑 Удалить", callback_data=f"tubik:del:{tubik.id}")
+        await message.answer(text, reply_markup=builder.as_markup())
+
+
+@router.callback_query(lambda c: c.data and c.data.startswith("tubik:del:"))
+async def tubik_delete(callback: CallbackQuery, db: AsyncSession, lang: str):
+    tubik_id = int(callback.data.split(":")[2])
+    tubik = await db.get(Tubik, tubik_id)
+    if tubik and tubik.user_id == callback.from_user.id:
+        await db.delete(tubik)
+        await db.commit()
+        await callback.message.delete()
+    await callback.answer()

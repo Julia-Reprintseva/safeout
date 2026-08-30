@@ -5,9 +5,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from core.models import User, Language, TrustedContact
+from core.models import User, Language, TrustedContact, DateSession, SessionStatus
 from bot.middlewares.i18n import t
-from bot.keyboards.main import language_kb
+from bot.keyboards.main import language_kb, active_session_kb
 
 router = Router()
 
@@ -78,7 +78,21 @@ async def cmd_start(message: Message, db: AsyncSession, lang: str):
         await message.answer(t("consent_notice", lang), reply_markup=builder.as_markup(), parse_mode="HTML")
         return
 
-    await message.answer(t("welcome", lang))
+    # Check for active session — show its control buttons
+    active = await db.execute(
+        select(DateSession)
+        .where(DateSession.user_id == message.from_user.id)
+        .where(DateSession.status == SessionStatus.ACTIVE)
+    )
+    active_session = active.scalars().first()
+
+    guide_label = {"ru": "📖 Инструкция", "en": "📖 Guide", "tr": "📖 Rehber"}.get(lang, "📖 Инструкция")
+    builder = InlineKeyboardBuilder()
+    builder.button(text=guide_label, url="https://reprintseva.pro/portfolio/bots/safeout/")
+    await message.answer(t("welcome", lang), reply_markup=builder.as_markup())
+
+    if active_session:
+        await message.answer(t("already_active", lang), reply_markup=active_session_kb(lang, active_session.id))
 
 
 @router.callback_query(lambda c: c.data == "consent:accept")
@@ -88,8 +102,19 @@ async def consent_accept(callback: CallbackQuery, db: AsyncSession, lang: str):
         user.consent_given = True
         await db.commit()
     await callback.message.edit_reply_markup()
-    await callback.message.answer(t("consent_accepted", lang) + t("welcome", lang), parse_mode="HTML")
+    guide_label = {"ru": "📖 Инструкция", "en": "📖 Guide", "tr": "📖 Rehber"}.get(lang, "📖 Инструкция")
+    builder = InlineKeyboardBuilder()
+    builder.button(text=guide_label, url="https://reprintseva.pro/portfolio/bots/safeout/")
+    await callback.message.answer(t("consent_accepted", lang) + t("welcome", lang), parse_mode="HTML", reply_markup=builder.as_markup())
     await callback.answer()
+
+
+@router.message(Command("help"))
+async def cmd_help(message: Message, lang: str):
+    guide_label = {"ru": "📖 Инструкция", "en": "📖 Guide", "tr": "📖 Rehber"}.get(lang, "📖 Инструкция")
+    builder = InlineKeyboardBuilder()
+    builder.button(text=guide_label, url="https://reprintseva.pro/portfolio/bots/safeout/")
+    await message.answer(t("welcome", lang), reply_markup=builder.as_markup())
 
 
 @router.message(Command("language"))

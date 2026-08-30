@@ -99,6 +99,11 @@ class DateSession(Base):
     last_lon: Mapped[float | None]
     last_location_at: Mapped[datetime | None] = mapped_column(DateTime)
 
+    # Отзыв после свидания
+    review: Mapped[str | None] = mapped_column(String(16))   # "fire" | "ok" | "tubik"
+    tubik_name: Mapped[str | None] = mapped_column(String(256))  # имя/ник если тюбик
+    notes: Mapped[str | None] = mapped_column(Text)           # заметки во время свидания
+
     # Служебное
     alert_token: Mapped[str] = mapped_column(String(64), unique=True)  # токен для веб-страницы
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -142,3 +147,16 @@ class Escalation(Base):
     acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     session: Mapped["DateSession"] = relationship(back_populates="escalations")
+
+
+class Tubik(Base):
+    __tablename__ = "tubiks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"))
+    name: Mapped[str] = mapped_column(String(256))
+    comment: Mapped[str | None] = mapped_column(Text)
+    date_session_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("date_sessions.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User"] = relationship()

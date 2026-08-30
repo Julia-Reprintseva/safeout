@@ -16,6 +16,8 @@ After full checklist: bot counts red flags and suggests action.
 """
 from aiogram import Router, F
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +27,10 @@ from core.models import DateSession, SessionStatus, TrustedContact
 from core.config import settings
 
 router = Router()
+
+
+class NoteFlow(StatesGroup):
+    waiting_note = State()
 
 
 async def _ack_ping(db: AsyncSession, session_id: int):
@@ -40,7 +46,6 @@ async def _ack_ping(db: AsyncSession, session_id: int):
 # Checklist definition
 # ---------------------------------------------------------------------------
 STATUS_CHECKS: list[dict] = [
-    # Block 1 — Reality matches promises
     {
         "key": "same_person",
         "block": 1,
@@ -81,88 +86,6 @@ STATUS_CHECKS: list[dict] = [
         "tr": "Araç kaydettiğinle aynı",
         "red_flag": True,
     },
-    # Block 2 — Your feelings right now
-    {
-        "key": "feel_comfortable",
-        "block": 2,
-        "ru": "Ты чувствуешь себя комфортно",
-        "en": "You feel comfortable",
-        "tr": "Kendini rahat hissediyorsun",
-        "red_flag": True,
-    },
-    {
-        "key": "can_leave",
-        "block": 2,
-        "ru": "Ты можешь свободно уйти когда захочешь",
-        "en": "You can leave freely whenever you want",
-        "tr": "İstediğinde serbestçe ayrılabilirsin",
-        "red_flag": True,
-    },
-    {
-        "key": "no_anxiety",
-        "block": 2,
-        "ru": "Тебя ничего не беспокоит и не тревожит",
-        "en": "Nothing feels off or worrying",
-        "tr": "Seni rahatsız eden veya endişelendiren bir şey yok",
-        "red_flag": False,
-    },
-    {
-        "key": "conscious",
-        "block": 2,
-        "ru": "Ты в сознании и понимаешь что происходит",
-        "en": "You are conscious and aware of what's happening",
-        "tr": "Bilinçlisin ve ne olduğunun farkındasın",
-        "red_flag": True,
-    },
-    {
-        "key": "know_location",
-        "block": 2,
-        "ru": "Ты знаешь где находишься",
-        "en": "You know where you are",
-        "tr": "Nerede olduğunu biliyorsun",
-        "red_flag": True,
-    },
-    # Block 3 — His behaviour
-    {
-        "key": "respects_boundaries",
-        "block": 3,
-        "ru": "Он уважает твои границы",
-        "en": "He respects your boundaries",
-        "tr": "Sınırlarına saygı gösteriyor",
-        "red_flag": True,
-    },
-    {
-        "key": "no_pressure_substances",
-        "block": 3,
-        "ru": "Он не настаивает на алкоголе или других веществах",
-        "en": "He's not pushing alcohol or other substances",
-        "tr": "Alkol veya başka madde kullanımı için baskı yapmıyor",
-        "red_flag": True,
-    },
-    {
-        "key": "phone_safe",
-        "block": 3,
-        "ru": "Он не забирал твой телефон или документы",
-        "en": "He hasn't taken your phone or documents",
-        "tr": "Telefonunu veya belgelerini almadı",
-        "red_flag": True,
-    },
-    {
-        "key": "no_threats",
-        "block": 3,
-        "ru": "Он не угрожал тебе и не запугивал",
-        "en": "He hasn't threatened or intimidated you",
-        "tr": "Seni tehdit etmedi veya korkutmadı",
-        "red_flag": True,
-    },
-    {
-        "key": "not_isolated",
-        "block": 3,
-        "ru": "Он не пытается изолировать тебя от людей",
-        "en": "He's not trying to isolate you from other people",
-        "tr": "Seni insanlardan izole etmeye çalışmıyor",
-        "red_flag": True,
-    },
 ]
 
 BLOCK_TITLES = {
@@ -171,26 +94,8 @@ BLOCK_TITLES = {
     3: {"ru": "🔍 Его поведение",                     "en": "🔍 His behaviour",                 "tr": "🔍 Onun davranışı"},
 }
 
-SHORT_QUESTIONS = {
-    "ru": (
-        "👋 Быстрая проверка — ответь честно:\n\n"
-        "1. Всё идёт как планировали — место, маршрут, человек?\n"
-        "2. Ты чувствуешь себя комфортно и можешь уйти когда захочешь?\n"
-        "3. Его поведение тебя не настораживает?"
-    ),
-    "en": (
-        "👋 Quick check-in — answer honestly:\n\n"
-        "1. Everything going as planned — place, route, person?\n"
-        "2. You feel comfortable and free to leave anytime?\n"
-        "3. Nothing about his behaviour worries you?"
-    ),
-    "tr": (
-        "👋 Hızlı kontrol — dürüstçe cevapla:\n\n"
-        "1. Her şey planlandığı gibi mi gidiyor — yer, güzergah, kişi?\n"
-        "2. Rahat hissediyor ve istediğinde ayrılabilir misin?\n"
-        "3. Davranışında seni tedirgin eden bir şey yok mu?"
-    ),
-}
+from core.ping_messages import SHORT_QUESTIONS, short_ping_kb  # noqa: F401
+from bot.keyboards.main import active_session_kb
 
 CONCERN_QUESTION = {
     "ru": "Хорошо, не волнуйся. Что именно тебя беспокоит?",
@@ -265,39 +170,50 @@ RESULT_MESSAGES = {
 }
 
 
-def short_ping_kb(session_id: int, lang: str):
+async def _notify_contacts_soft(db: AsyncSession, user_id: int, session_id: int, lang: str):
+    """Send a soft alert to all Telegram contacts when checklist shows red flags."""
+    from core.db_sync import get_escalation_context
+    from core.tasks import _get_checklist_problems, _build_contact_message, _build_contact_keyboard
+    import asyncio
+
+    def _run():
+        ctx = get_escalation_context(session_id)
+        if not ctx:
+            return
+        session_data = ctx["session_data"]
+        problems = _get_checklist_problems(user_id, session_id)
+        text = _build_contact_message(session_data, level=0, lang=lang, problems=problems)
+        kb = _build_contact_keyboard(session_data)
+        contacts = session_data.get("contacts", [])
+        for contact in contacts:
+            if contact.get("telegram_id"):
+                try:
+                    import asyncio as _asyncio
+                    from core.bot_api import notify_telegram_contact
+                    _asyncio.run(notify_telegram_contact(contact["telegram_id"], text, kb))
+                except Exception:
+                    pass
+
+    import asyncio as asyncio_mod
+    await asyncio_mod.get_event_loop().run_in_executor(None, _run)
+
+
+def _checklist_header(lang: str) -> str:
+    return {"ru": "Отметь что не так — нажми на пункт. Когда готова — Готово.",
+            "en": "Tap what's wrong. When done — press Done.",
+            "tr": "Yanlış olanı işaretle. Hazır olunca — Tamam."}[lang]
+
+
+def _checklist_kb(session_id: int, problems: set, lang: str):
+    """problems = set of item keys the user marked as NOT okay."""
     builder = InlineKeyboardBuilder()
-    labels = {
-        "ru": ("✅ Всё хорошо", "⚠️ Есть проблема", "🆘 SOS"),
-        "en": ("✅ I'm okay",   "⚠️ Something's off", "🆘 SOS"),
-        "tr": ("✅ İyiyim",     "⚠️ Bir sorun var",    "🆘 SOS"),
-    }[lang]
-    builder.button(text=labels[0], callback_data=f"sc:ok:{session_id}")
-    builder.button(text=labels[1], callback_data=f"sc:concern:{session_id}")
-    builder.button(text=labels[2], callback_data=f"sc:sos:{session_id}")
-    builder.adjust(1)
-    return builder.as_markup()
-
-
-def full_checklist_kb(session_id: int, answers: dict, lang: str):
-    """Yes/No buttons for each check item."""
-    builder = InlineKeyboardBuilder()
-    yes_label = {"ru": "✅ Да", "en": "✅ Yes", "tr": "✅ Evet"}[lang]
-    no_label  = {"ru": "❌ Нет", "en": "❌ No",  "tr": "❌ Hayır"}[lang]
-
-    current_block = 0
+    builder.button(text=BLOCK_TITLES[1][lang], callback_data="sc:noop")
     for item in STATUS_CHECKS:
-        key = item["key"]
-        ans = answers.get(key)
-        y = f"✅ {item[lang][:35]}" if ans is True else yes_label
-        n = f"❌ {item[lang][:35]}" if ans is False else no_label
-        builder.button(text=f"{'→ ' if ans is None else ''}{item[lang][:40]}", callback_data="sc:noop")
-        builder.button(text=y, callback_data=f"sc:ans:{session_id}:{key}:yes")
-        builder.button(text=n, callback_data=f"sc:ans:{session_id}:{key}:no")
-
-    done_label = {"ru": "Готово — показать результат", "en": "Done — show result", "tr": "Tamam — sonucu göster"}[lang]
-    builder.button(text=done_label, callback_data=f"sc:result:{session_id}")
-    builder.adjust(1, 2, 2)  # label row / yes+no row / ...
+        mark = "❌" if item["key"] in problems else "✅"
+        builder.button(text=f"{mark} {item[lang]}", callback_data=f"sc:tog:{session_id}:{item['key']}")
+    done_label = {"ru": "✔️ Готово", "en": "✔️ Done", "tr": "✔️ Tamam"}[lang]
+    builder.button(text=done_label, callback_data=f"sc:submit:{session_id}")
+    builder.adjust(1)
     return builder.as_markup()
 
 
@@ -312,33 +228,30 @@ def action_kb(session_id: int, lang: str):
     return builder.as_markup()
 
 
-def _count_red_flags(answers: dict) -> int:
-    count = 0
-    for item in STATUS_CHECKS:
-        if item["red_flag"] and answers.get(item["key"]) is False:
-            count += 1
-    return count
-
 
 def _get_redis():
     from core.tasks import celery_app
     return celery_app.backend.client
 
 
-def _get_answers(user_id: int, session_id: int) -> dict:
-    redis = _get_redis()
-    raw = redis.hgetall(f"sc:{user_id}:{session_id}")
-    return {
-        (k.decode() if isinstance(k, bytes) else k): (v == b"yes" or v == "yes")
-        for k, v in raw.items()
-    }
+def _redis_key(user_id: int, session_id: int) -> str:
+    return f"sc:problems:{user_id}:{session_id}"
 
 
-def _set_answer(user_id: int, session_id: int, key: str, value: bool):
+def _get_problems(user_id: int, session_id: int) -> set:
     redis = _get_redis()
-    redis_key = f"sc:{user_id}:{session_id}"
-    redis.hset(redis_key, key, "yes" if value else "no")
-    redis.expire(redis_key, 86400)
+    raw = redis.smembers(_redis_key(user_id, session_id))
+    return {(v.decode() if isinstance(v, bytes) else v) for v in raw}
+
+
+def _toggle_problem(user_id: int, session_id: int, key: str):
+    redis = _get_redis()
+    rk = _redis_key(user_id, session_id)
+    if redis.sismember(rk, key):
+        redis.srem(rk, key)
+    else:
+        redis.sadd(rk, key)
+    redis.expire(rk, 86400)
 
 
 # ---------------------------------------------------------------------------
@@ -357,7 +270,7 @@ async def sc_ok(callback: CallbackQuery, db: AsyncSession, lang: str):
     )
 
     text = RESULT_MESSAGES["safe"][lang].format(interval=settings.ping_interval_minutes)
-    await callback.message.edit_text(text)
+    await callback.message.edit_text(text, reply_markup=action_kb(session_id, lang))
     await callback.answer()
 
 
@@ -374,70 +287,33 @@ async def sc_concern(callback: CallbackQuery, lang: str):
 @router.callback_query(lambda c: c.data and c.data.startswith("sc:full:"))
 async def sc_full(callback: CallbackQuery, lang: str):
     session_id = int(callback.data.split(":")[2])
-    answers = _get_answers(callback.from_user.id, session_id)
-
-    header = {
-        "ru": "📋 <b>Чек-лист — сейчас на свидании</b>\n\nОтветь честно на каждый вопрос:\n",
-        "en": "📋 <b>Checklist — during the date</b>\n\nAnswer honestly:\n",
-        "tr": "📋 <b>Kontrol listesi — randevu sırasında</b>\n\nDürüstçe cevapla:\n",
-    }[lang]
-
-    lines = [header]
-    current_block = 0
-    for item in STATUS_CHECKS:
-        if item["block"] != current_block:
-            current_block = item["block"]
-            lines.append(f"\n<b>{BLOCK_TITLES[current_block][lang]}</b>")
-        ans = answers.get(item["key"])
-        icon = "✅" if ans is True else ("❌" if ans is False else "⬜️")
-        lines.append(f"{icon} {item[lang]}")
-
+    problems = _get_problems(callback.from_user.id, session_id)
     await callback.message.edit_text(
-        "\n".join(lines),
-        reply_markup=full_checklist_kb(session_id, answers, lang),
+        _checklist_header(lang),
+        reply_markup=_checklist_kb(session_id, problems, lang),
     )
     await callback.answer()
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("sc:ans:"))
-async def sc_answer(callback: CallbackQuery, lang: str):
+@router.callback_query(lambda c: c.data and c.data.startswith("sc:tog:"))
+async def sc_toggle(callback: CallbackQuery, lang: str):
     parts = callback.data.split(":")
     session_id = int(parts[2])
     key = parts[3]
-    value = parts[4] == "yes"
-
-    _set_answer(callback.from_user.id, session_id, key, value)
-
-    answers = _get_answers(callback.from_user.id, session_id)
-    lines = []
-    current_block = 0
-    for item in STATUS_CHECKS:
-        if item["block"] != current_block:
-            current_block = item["block"]
-            lines.append(f"\n<b>{BLOCK_TITLES[current_block][lang]}</b>")
-        ans = answers.get(item["key"])
-        icon = "✅" if ans is True else ("❌" if ans is False else "⬜️")
-        lines.append(f"{icon} {item[lang]}")
-
-    header = {
-        "ru": "📋 <b>Чек-лист — сейчас на свидании</b>\n",
-        "en": "📋 <b>Checklist — during the date</b>\n",
-        "tr": "📋 <b>Kontrol listesi — randevu sırasında</b>\n",
-    }[lang]
-
+    _toggle_problem(callback.from_user.id, session_id, key)
+    problems = _get_problems(callback.from_user.id, session_id)
     await callback.message.edit_text(
-        header + "\n".join(lines),
-        reply_markup=full_checklist_kb(session_id, answers, lang),
+        _checklist_header(lang),
+        reply_markup=_checklist_kb(session_id, problems, lang),
     )
     await callback.answer()
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("sc:result:"))
-async def sc_result(callback: CallbackQuery, db: AsyncSession, lang: str):
+@router.callback_query(lambda c: c.data and c.data.startswith("sc:submit:"))
+async def sc_submit(callback: CallbackQuery, db: AsyncSession, lang: str):
     session_id = int(callback.data.split(":")[2])
-    answers = _get_answers(callback.from_user.id, session_id)
-    red_flags = _count_red_flags(answers)
-
+    problems = _get_problems(callback.from_user.id, session_id)
+    red_flags = len(problems)
     if red_flags == 0:
         await _ack_ping(db, session_id)
         from core.tasks import ping_user
@@ -446,14 +322,15 @@ async def sc_result(callback: CallbackQuery, db: AsyncSession, lang: str):
             countdown=settings.ping_interval_minutes * 60,
         )
         text = RESULT_MESSAGES["safe"][lang].format(interval=settings.ping_interval_minutes)
-        await callback.message.edit_text(text)
+        await callback.message.edit_text(text, reply_markup=action_kb(session_id, lang))
     elif red_flags <= 2:
         text = RESULT_MESSAGES["concern"][lang].format(count=red_flags)
         await callback.message.edit_text(text, reply_markup=action_kb(session_id, lang))
+        await _notify_contacts_soft(db, callback.from_user.id, session_id, lang)
     else:
         text = RESULT_MESSAGES["danger"][lang].format(count=red_flags)
         await callback.message.edit_text(text, reply_markup=action_kb(session_id, lang))
-
+        await _notify_contacts_soft(db, callback.from_user.id, session_id, lang)
     await callback.answer()
 
 
@@ -465,7 +342,7 @@ async def sc_sos(callback: CallbackQuery, db: AsyncSession, lang: str):
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("sc:action:"))
-async def sc_action(callback: CallbackQuery, db: AsyncSession, lang: str):
+async def sc_action(callback: CallbackQuery, db: AsyncSession, lang: str, state: FSMContext):
     parts = callback.data.split(":")
     session_id = int(parts[2])
     action = parts[3]
@@ -478,47 +355,41 @@ async def sc_action(callback: CallbackQuery, db: AsyncSession, lang: str):
         )
         contacts = result.scalars().all()
         if contacts:
-            c = contacts[0]
-            channels = []
-            if c.phone:
-                channels.append(f"📱 {c.phone}")
-            if c.telegram_username:
-                channels.append(f'💬 <a href="https://t.me/{c.telegram_username}">@{c.telegram_username}</a>')
-            elif c.telegram_id:
-                channels.append(f'💬 <a href="tg://user?id={c.telegram_id}">Telegram</a>')
-            if not channels:
-                channels = [{
-                    "ru": "Пока не подключилась в Telegram — способов связи нет",
-                    "en": "Hasn't connected on Telegram yet — no way to reach them",
-                    "tr": "Henüz Telegram'a bağlanmadı — ulaşacak bir yol yok",
-                }[lang]]
-            contacts_text = {
-                "ru": f"Свяжись с <b>{c.name}</b>:\n" + "\n".join(channels),
-                "en": f"Contact <b>{c.name}</b>:\n" + "\n".join(channels),
-                "tr": f"<b>{c.name}</b> ile iletişime geç:\n" + "\n".join(channels),
+            parts = []
+            for c in contacts:
+                channels = []
+                if c.phone:
+                    channels.append(f"📱 {c.phone.replace(' ', '')}")
+                if c.telegram_username:
+                    channels.append(f'💬 <a href="https://t.me/{c.telegram_username}">@{c.telegram_username}</a>')
+                elif c.telegram_id:
+                    channels.append(f'💬 <a href="tg://user?id={c.telegram_id}">Telegram</a>')
+                if channels:
+                    parts.append(f"<b>{c.name}</b>\n" + "\n".join(channels))
+            header = {"ru": "Свяжись с подругой:", "en": "Contact your people:", "tr": "Bağlantı kur:"}[lang]
+            contacts_text = header + "\n\n" + "\n\n".join(parts) if parts else {
+                "ru": "У контактов нет способов для связи.",
+                "en": "No contact methods available.",
+                "tr": "İletişim yolu yok.",
             }[lang]
-            await callback.message.answer(contacts_text)
+            await callback.message.answer(contacts_text, reply_markup=active_session_kb(lang, session_id), disable_web_page_preview=True)
         else:
             no_contact = {
                 "ru": "У тебя нет сохранённых контактов. Добавь через /contacts.",
                 "en": "You have no saved contacts. Add one via /contacts.",
                 "tr": "Kayıtlı kişin yok. /contacts ile ekle.",
             }[lang]
-            await callback.message.answer(no_contact)
+            await callback.message.answer(no_contact, reply_markup=active_session_kb(lang, session_id))
 
     elif action == "note_and_go":
-        noted = {
-            "ru": "📝 Зафиксировано. Я продолжаю следить. Следующая проверка через {interval} минут.",
-            "en": "📝 Noted. I'm still watching. Next check-in in {interval} minutes.",
-            "tr": "📝 Not alındı. İzlemeye devam ediyorum. Sonraki kontrol {interval} dakika sonra.",
-        }[lang].format(interval=settings.ping_interval_minutes)
-        await callback.message.answer(noted)
-        await _ack_ping(db, session_id)
-        from core.tasks import ping_user
-        ping_user.apply_async(
-            (session_id, callback.from_user.id),
-            countdown=settings.ping_interval_minutes * 60,
-        )
+        ask = {
+            "ru": "✍️ Напиши что именно беспокоит — я запишу и продолжу следить:",
+            "en": "✍️ Write what's bothering you — I'll note it and keep watching:",
+            "tr": "✍️ Seni neyin rahatsız ettiğini yaz — not alacağım ve izlemeye devam edeceğim:",
+        }[lang]
+        await callback.message.answer(ask)
+        await state.set_state(NoteFlow.waiting_note)
+        await state.update_data(note_session_id=session_id, note_user_id=callback.from_user.id)
 
     await callback.answer()
 
@@ -550,3 +421,36 @@ async def cmd_status(message: Message, db: AsyncSession, lang: str):
         SHORT_QUESTIONS[lang],
         reply_markup=short_ping_kb(session.id, lang),
     )
+
+
+@router.message(NoteFlow.waiting_note, F.text, F.text.func(lambda t: not t.startswith("/") or t.strip().lower() == "/skip"))
+async def note_received(message: Message, state: FSMContext, db: AsyncSession, lang: str):
+    data = await state.get_data()
+    session_id = data.get("note_session_id")
+    note_text = message.text or ""
+    await state.clear()
+
+    if session_id:
+        session_obj = await db.get(DateSession, session_id)
+        if session_obj:
+            session_obj.notes = ((session_obj.notes or "") + f"\n{note_text}").strip()
+            session_obj.ping_generation += 1  # disarm pending L1 escalation
+            try:
+                await db.commit()
+            except Exception:
+                await db.rollback()
+
+    confirmed = {
+        "ru": f"📝 Записала: «{note_text}»\n\nПродолжаю следить. Следующая проверка через {settings.ping_interval_minutes} минут.",
+        "en": f"📝 Noted: «{note_text}»\n\nStill watching. Next check-in in {settings.ping_interval_minutes} minutes.",
+        "tr": f"📝 Not aldım: «{note_text}»\n\nİzlemeye devam ediyorum. Sonraki kontrol {settings.ping_interval_minutes} dakika sonra.",
+    }[lang]
+    kb = active_session_kb(lang, session_id) if session_id else None
+    await message.answer(confirmed, reply_markup=kb)
+
+    if session_id:
+        from core.tasks import ping_user
+        ping_user.apply_async(
+            (session_id, message.from_user.id),
+            countdown=settings.ping_interval_minutes * 60,
+        )

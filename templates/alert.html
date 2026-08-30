@@ -43,12 +43,14 @@
 <div class="header">
   <h1>🆘 SafeOut</h1>
   <p>
-    {% if lang == "ru" %}
-      {{ user_name }} не выходит на связь
-    {% elif lang == "tr" %}
-      {{ user_name }} yanıt vermiyor
+    {% if is_sos %}
+      {% if lang == "ru" %}{{ user_name }} нажала кнопку экстренной помощи
+      {% elif lang == "tr" %}{{ user_name }} acil yardım düğmesine bastı
+      {% else %}{{ user_name }} pressed the emergency button{% endif %}
     {% else %}
-      {{ user_name }} is not responding
+      {% if lang == "ru" %}{{ user_name }} не отвечает на проверку безопасности
+      {% elif lang == "tr" %}{{ user_name }} yanıt vermiyor
+      {% else %}{{ user_name }} is not responding to check-in{% endif %}
     {% endif %}
   </p>
   <span class="status-badge {{ 'sos' if is_sos else 'alert' }}">
@@ -94,6 +96,7 @@
     {{ row("Куда едут", destination) }}
     {{ row("Машина", car_plate) }}
     {{ row("Доп. инфо", extra_info) }}
+    {{ row("Заметки во время свидания", notes) }}
     {% if expected_return %}
     {{ row("Ждали в", expected_return) }}
     {% endif %}

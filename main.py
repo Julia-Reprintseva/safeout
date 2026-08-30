@@ -12,7 +12,8 @@ from core.database import engine
 from core.models import Base
 from bot.middlewares.db import DbMiddleware
 from bot.middlewares.i18n import I18nMiddleware
-from bot.handlers import start, contacts, newdate, checklist, status_check, clear
+from bot.middlewares.fsm_reset import FsmResetOnCommandMiddleware
+from bot.handlers import start, contacts, newdate, checklist, status_check, clear, stats, fallback
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ async def on_startup(bot: Bot):
         BotCommand(command="contacts",  description="Доверенные контакты"),
         BotCommand(command="clear",     description="Удалить данные о свиданиях"),
         BotCommand(command="language",  description="Сменить язык"),
+        BotCommand(command="tubiki",    description="Моя коллекция тюбиков 🙈"),
         BotCommand(command="help",      description="Помощь"),
     ])
     logger.info("SafeOut bot started")
@@ -40,6 +42,31 @@ async def main():
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS consent_given BOOLEAN NOT NULL DEFAULT FALSE"
             )
         )
+        await conn.execute(
+            __import__("sqlalchemy").text(
+                "ALTER TABLE date_sessions ADD COLUMN IF NOT EXISTS review VARCHAR(16)"
+            )
+        )
+        await conn.execute(
+            __import__("sqlalchemy").text(
+                "ALTER TABLE date_sessions ADD COLUMN IF NOT EXISTS tubik_name VARCHAR(256)"
+            )
+        )
+        await conn.execute(
+            __import__("sqlalchemy").text(
+                "ALTER TABLE date_sessions ADD COLUMN IF NOT EXISTS notes TEXT"
+            )
+        )
+        await conn.execute(__import__("sqlalchemy").text("""
+            CREATE TABLE IF NOT EXISTS tubiks (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL REFERENCES users(id),
+                name VARCHAR(256) NOT NULL,
+                comment TEXT,
+                date_session_id INTEGER REFERENCES date_sessions(id) ON DELETE SET NULL,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """))
 
     storage = RedisStorage.from_url(settings.redis_url)
     bot = Bot(
@@ -51,6 +78,7 @@ async def main():
     # Middlewares (order matters: DB first, then i18n which needs db_user)
     dp.update.middleware(DbMiddleware())
     dp.update.middleware(I18nMiddleware())
+    dp.update.middleware(FsmResetOnCommandMiddleware())
 
     dp.include_router(start.router)
     dp.include_router(contacts.router)
@@ -58,6 +86,8 @@ async def main():
     dp.include_router(checklist.router)
     dp.include_router(status_check.router)
     dp.include_router(clear.router)
+    dp.include_router(stats.router)
+    dp.include_router(fallback.router)  # must be last
 
     dp.startup.register(on_startup)
 

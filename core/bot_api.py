@@ -31,7 +31,7 @@ async def send_ping(telegram_id: int, session_id: int) -> int | None:
     from aiogram import Bot
     bot = Bot(token=settings.bot_token)
     try:
-        from bot.handlers.status_check import SHORT_QUESTIONS, short_ping_kb
+        from core.ping_messages import SHORT_QUESTIONS, short_ping_kb
         await bot.send_message(
             chat_id=telegram_id,
             text=SHORT_QUESTIONS[lang],
@@ -43,11 +43,17 @@ async def send_ping(telegram_id: int, session_id: int) -> int | None:
     return generation
 
 
-async def notify_telegram_contact(telegram_id: int, text: str):
+async def notify_telegram_contact(telegram_id: int, text: str, reply_markup=None):
     """Send alert message to a trusted contact on Telegram."""
     from aiogram import Bot
     bot = Bot(token=settings.bot_token)
     try:
-        await bot.send_message(chat_id=telegram_id, text=text)
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=text,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+            reply_markup=reply_markup,
+        )
     finally:
         await bot.session.close()

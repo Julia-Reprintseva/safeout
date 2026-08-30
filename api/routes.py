@@ -66,6 +66,7 @@ async def alert_page(request: Request, token: str):
             "destination": session.destination,
             "car_plate": session.car_plate,
             "extra_info": session.extra_info,
+            "notes": session.notes,
             "expected_return": session.expected_return.strftime("%H:%M %d.%m") if session.expected_return else None,
             "files": file_data,
             "acknowledged": acknowledged,
