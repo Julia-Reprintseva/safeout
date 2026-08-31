@@ -581,7 +581,7 @@ async def tubik_delete(callback: CallbackQuery, db: AsyncSession, lang: str):
 
 
 async def _show_paywall(message, lang: str):
-    from core.wallet_pay import PRICE_USDT
+    from core.crypto_pay import PRICE_USDT
     from aiogram.utils.keyboard import InlineKeyboardBuilder
     text = {
         "ru": (
@@ -589,35 +589,35 @@ async def _show_paywall(message, lang: str):
             f"SafeOut Premium — <b>{PRICE_USDT} USDT/месяц</b>\n"
             f"✓ Безлимитные свидания\n"
             f"✓ Все функции без ограничений\n\n"
-            f"Оплата через Telegram Wallet (USDT)"
+            f"Оплата через @CryptoBot (USDT)"
         ),
         "en": (
             f"🔒 You've used all your free dates.\n\n"
             f"SafeOut Premium — <b>{PRICE_USDT} USDT/month</b>\n"
             f"✓ Unlimited dates\n"
             f"✓ All features\n\n"
-            f"Pay via Telegram Wallet (USDT)"
+            f"Pay via @CryptoBot (USDT)"
         ),
     }.get(lang, f"🔒 Free dates used up.\n\nPremium — {PRICE_USDT} USDT/month")
 
     builder = InlineKeyboardBuilder()
-    builder.button(text=f"💳 Оплатить {PRICE_USDT} USDT", callback_data="pay:wallet")
+    builder.button(text=f"💳 Оплатить {PRICE_USDT} USDT", callback_data="pay:crypto")
     await message.answer(text, reply_markup=builder.as_markup())
 
 
-@router.callback_query(F.data == "pay:wallet")
-async def pay_wallet(callback: CallbackQuery, lang: str):
-    from core.wallet_pay import create_order
+@router.callback_query(F.data == "pay:crypto")
+async def pay_crypto(callback: CallbackQuery, lang: str):
+    from core.crypto_pay import create_invoice
     from aiogram.utils.keyboard import InlineKeyboardBuilder
     await callback.answer()
-    order = await create_order(callback.from_user.id)
-    if not order:
+    invoice = await create_invoice(callback.from_user.id)
+    if not invoice:
         await callback.message.answer("⚠️ Не удалось создать счёт. Попробуй позже.")
         return
     builder = InlineKeyboardBuilder()
-    builder.button(text="💳 Оплатить в Wallet", url=order["payLink"])
+    builder.button(text="💳 Оплатить в CryptoBot", url=invoice["pay_url"])
     text = {
-        "ru": "Нажми кнопку ниже — откроется @wallet для оплаты. После оплаты напиши /newdate.",
-        "en": "Tap the button below to pay in @wallet. After payment, type /newdate.",
+        "ru": "Нажми кнопку ниже — откроется @CryptoBot для оплаты. После оплаты напиши /newdate.",
+        "en": "Tap the button below to pay in @CryptoBot. After payment, type /newdate.",
     }.get(lang, "Tap below to pay.")
     await callback.message.answer(text, reply_markup=builder.as_markup())

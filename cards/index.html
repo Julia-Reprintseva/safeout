@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeOut — карточки для соцсетей</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap">
+<style>
+  :root {
+    --bg:      #0E1118;
+    --paper:   #12151C;
+    --paper2:  #171B24;
+    --line:    #2A3140;
+    --ink:     #E9E6DC;
+    --dim:     #838CA0;
+    --faint:   #3A4155;
+    --gold:    #CB9C47;
+    --gold-hi: #E4B968;
+    --red:     #C75454;
+    --good:    #6FAE8C;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    padding: 48px 32px 80px;
+    min-height: 100vh;
+  }
+
+  /* ── page header ── */
+  .page-header {
+    max-width: 1200px;
+    margin: 0 auto 56px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 24px;
+  }
+  .page-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .page-title span { color: var(--gold); }
+  .page-meta {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 0.72rem;
+    color: var(--dim);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  /* ── section label ── */
+  .section { max-width: 1200px; margin: 0 auto 60px; }
+  .section-label {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 0.68rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  /* ── card grid ── */
+  .card-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* ── base card ── */
+  .card {
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    background: var(--paper);
+  }
+
+  /* Square 1:1 → displayed at 400px */
+  .sq { width: 400px; height: 400px; }
+  /* Vertical 9:16 → displayed at 270×480 */
+  .vt { width: 270px; height: 480px; }
+  /* LinkedIn 1.91:1 → displayed at 560×293 */
+  .lk { width: 560px; height: 293px; }
+
+  /* ── dot-grid bg utility ── */
+  .dotgrid {
+    background:
+      radial-gradient(circle at 1px 1px, var(--faint) 1px, transparent 0) 0 0/20px 20px,
+      var(--paper);
+  }
+
+  /* ══════════════════════════════════════
+     CARD 01 — Intro square (main)
+  ══════════════════════════════════════ */
+  .c01 {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 32px;
+  }
+  .c01-top { display: flex; flex-direction: column; gap: 10px; }
+  .c01-eyebrow {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .c01-eyebrow::before {
+    content: '';
+    display: block;
+    width: 20px; height: 1px;
+    background: var(--gold);
+  }
+  .c01-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -.02em;
+    color: var(--ink);
+  }
+  .c01-title em { font-style: italic; color: var(--gold); }
+  .c01-sub {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--dim);
+    max-width: 280px;
+    margin-top: 6px;
+  }
+  .c01-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .c01-handle {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: .04em;
+  }
+  .c01-shield {
+    width: 48px; height: 48px;
+    border: 1.5px solid var(--gold);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    opacity: .85;
+  }
+  /* corner accent */
+  .c01::before, .c01::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--gold);
+    opacity: .4;
+  }
+  .c01::before { top: 16px; left: 16px; border-width: 1.5px 0 0 1.5px; }
+  .c01::after  { top: 16px; right: 16px; border-width: 1.5px 1.5px 0 0; }
+
+  /* ══════════════════════════════════════
+     CARD 02 — How it works square
+  ══════════════════════════════════════ */
+  .c02 {
+    display: flex;
+    flex-direction: column;
+    padding: 30px 28px;
+    gap: 20px;
+  }
+  .c02-head {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .c02-steps { display: flex; flex-direction: column; gap: 0; flex: 1; }
+  .c02-step {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: flex-start;
+  }
+  .c02-step:last-child { border-bottom: none; }
+  .c02-n {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    color: var(--gold);
+    padding-top: 2px;
+    flex-shrink: 0;
+    width: 16px;
+  }
+  .c02-step-body {}
+  .c02-step-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .c02-step-desc {
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--dim);
+  }
+  .c02-foot {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: .06em;
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .c02-foot-bot { color: var(--gold); }
+
+  /* ══════════════════════════════════════
+     CARD 03 — SOS square
+  ══════════════════════════════════════ */
+  .c03 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .c03-glow {
+    position: absolute;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(199,84,84,.18) 0%, transparent 65%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .c03-ring {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 2px solid var(--red);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .c03-ring::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: rgba(199,84,84,.15);
+  }
+  .c03-sos {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: .2em;
+    position: relative;
+    z-index: 1;
+  }
+  .c03-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--ink);
+    position: relative;
+    z-index: 1;
+    max-width: 280px;
+  }
+  .c03-desc {
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--dim);
+    max-width: 280px;
+    position: relative;
+    z-index: 1;
+  }
+  .c03-tag {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--red);
+    background: rgba(199,84,84,.12);
+    border: 1px solid rgba(199,84,84,.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .c03-handle {
+    position: absolute;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    color: var(--faint);
+    letter-spacing: .06em;
+    z-index: 1;
+  }
+
+  /* ══════════════════════════════════════
+     CARD 04 — Chat bubble vertical (Story)
+  ══════════════════════════════════════ */
+  .c04 {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+  }
+  /* hero header block */
+  .c04-hero {
+    padding: 26px 22px 22px;
+    background: linear-gradient(160deg, #1A1E2A 0%, var(--paper) 100%);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .c04-hero::before, .c04-hero::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--gold);
+    opacity: .4;
+  }
+  .c04-hero::before { top: 12px; left: 12px; border-width: 1.5px 0 0 1.5px; }
+  .c04-hero::after  { top: 12px; right: 12px; border-width: 1.5px 1.5px 0 0; }
+  .c04-hero-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .c04-hero-shield {
+    width: 32px; height: 32px;
+    border: 1.5px solid var(--gold);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .c04-hero-name {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .c04-label {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .c04-label em { font-style: italic; color: var(--gold); }
+  .c04-hero-sub {
+    font-size: 10px;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+  /* body */
+  .c04-body {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0;
+  }
+  .c04-title {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 12px;
+  }
+  .c04-chat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .c04-msg {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+    max-width: 85%;
+  }
+  .c04-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .c04-avatar {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .c04-msg.bot .c04-avatar { background: var(--gold); color: #12151C; }
+  .c04-msg.user .c04-avatar { background: var(--paper2); color: var(--dim); }
+  .c04-bubble {
+    padding: 8px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .c04-msg.bot .c04-bubble {
+    background: var(--paper2);
+    color: var(--dim);
+    border-bottom-left-radius: 3px;
+  }
+  .c04-msg.user .c04-bubble {
+    background: rgba(203,156,71,.15);
+    color: var(--ink);
+    border-bottom-right-radius: 3px;
+  }
+  .c04-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .c04-btn {
+    font-size: 9px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid;
+    display: inline-block;
+    width: fit-content;
+    font-weight: 600;
+  }
+  .c04-btn.ok   { background: rgba(111,174,140,.15); color: var(--good);  border-color: rgba(111,174,140,.4); }
+  .c04-btn.warn { background: rgba(199,123,84,.15);  color: #C77B54;       border-color: rgba(199,123,84,.4); }
+  .c04-btn.sos  { background: rgba(199,84,84,.15);   color: var(--red);    border-color: rgba(199,84,84,.4); }
+  .c04-note {
+    margin-top: 8px;
+    font-size: 9px;
+    color: var(--faint);
+    font-style: italic;
+    text-align: center;
+    padding: 6px;
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+  }
+  .c04-foot {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    color: var(--gold);
+    letter-spacing: .06em;
+    border-top: 1px solid var(--line);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ══════════════════════════════════════
+     CARD 05 — Contact vertical (Story)
+  ══════════════════════════════════════ */
+  .c05 {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0;
+    background: var(--paper);
+    position: relative;
+  }
+  .c05-hero {
+    padding: 26px 22px 20px;
+    background: linear-gradient(160deg, #1A1E2A 0%, var(--paper) 100%);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .c05-hero::before, .c05-hero::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 1.5px solid rgba(199,84,84,.5);
+    opacity: .6;
+  }
+  .c05-hero::before { top: 12px; left: 12px; border-width: 1.5px 0 0 1.5px; }
+  .c05-hero::after  { top: 12px; right: 12px; border-width: 1.5px 1.5px 0 0; }
+  .c05-hero-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .c05-hero-icon {
+    width: 32px; height: 32px;
+    border: 1.5px solid var(--red);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .c05-hero-name {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .c05-hero-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .c05-hero-title em { font-style: italic; color: var(--red); }
+  .c05-hero-sub {
+    font-size: 10px;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+  .c05-body {
+    padding: 18px 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .c05-stripe {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--red) 0%, var(--gold) 100%);
+  }
+  .c05-top {}
+  .c05-eyebrow {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
+  }
+  .c05-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .c05-items { display: flex; flex-direction: column; gap: 10px; }
+  .c05-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px;
+    background: var(--paper2);
+    border-radius: 8px;
+    border: 1px solid var(--line);
+  }
+  .c05-item-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .c05-item-body {}
+  .c05-item-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+  .c05-item-desc {
+    font-size: 9px;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+  .c05-bot {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    color: var(--gold);
+    letter-spacing: .06em;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .c05-bot-url { color: var(--dim); }
+
+  /* ══════════════════════════════════════
+     CARD 06 — LinkedIn horizontal
+  ══════════════════════════════════════ */
+  .c06 {
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  .c06-left {
+    flex: 0 0 220px;
+    background: linear-gradient(160deg, #1A1E28 0%, #0E1118 100%);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 28px 26px;
+    position: relative;
+  }
+  .c06-left::before, .c06-left::after {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    border: 1px solid var(--gold);
+    opacity: .35;
+  }
+  .c06-left::before { top: 14px; left: 14px; border-width: 1px 0 0 1px; }
+  .c06-left::after  { bottom: 14px; right: 14px; border-width: 0 1px 1px 0; }
+  .c06-label {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .c06-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .c06-title em { font-style: italic; color: var(--gold); }
+  .c06-sub {
+    font-size: 10px;
+    line-height: 1.55;
+    color: var(--dim);
+    margin-top: 10px;
+  }
+  .c06-handle {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    color: var(--gold);
+    margin-top: 18px;
+    letter-spacing: .04em;
+  }
+  .c06-right {
+    flex: 1;
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .c06-right-label {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 14px;
+  }
+  .c06-points { display: flex; flex-direction: column; gap: 8px; }
+  .c06-point {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .c06-point-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .c06-point-text {
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--dim);
+  }
+  .c06-point-text strong { color: var(--ink); font-weight: 600; }
+  .c06-foot {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    color: var(--faint);
+    letter-spacing: .06em;
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    margin-top: 8px;
+  }
+
+  /* ══════════════════════════════════════
+     CARD 07 — VK square / "Не забудет"
+  ══════════════════════════════════════ */
+  .c07 {
+    display: flex;
+    flex-direction: column;
+    padding: 28px;
+    justify-content: space-between;
+    background: var(--paper);
+    position: relative;
+  }
+  .c07-accent-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gold);
+  }
+  .c07-top {}
+  .c07-kicker {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+  .c07-headline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .c07-scenario {
+    background: var(--paper2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .c07-scenario-label {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .c07-timeline { display: flex; flex-direction: column; gap: 7px; }
+  .c07-tick {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .c07-time {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 8px;
+    color: var(--gold);
+    min-width: 46px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+  .c07-event { color: var(--dim); }
+  .c07-event strong { color: var(--ink); }
+  .c07-bot {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 9px;
+    color: var(--dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .c07-bot span { color: var(--gold); }
+
+  /* ── size legend ── */
+  .size-note {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 10px;
+    letter-spacing: .04em;
+  }
+  .size-note b { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">SafeOut — <span>карточки</span> для соцсетей</div>
+  <div class="page-meta">@safeout_dates_bot · август 2026</div>
+</div>
+
+<!-- ── SQUARE 1:1 ── -->
+<div class="section">
+  <div class="section-label">Квадрат 1:1 · 1080×1080 · Instagram / VK / Telegram</div>
+  <div class="card-row">
+
+    <!-- Card 01 — Intro -->
+    <div>
+      <div class="card sq c01 dotgrid">
+        <div class="c01-top">
+          <div class="c01-eyebrow">Telegram-бот безопасности</div>
+          <div class="c01-title">Бот,<br>который<br><em>не забудет</em></div>
+          <div class="c01-sub">Хранит все данные о свидании и сам поднимает тревогу — если вы не ответите.</div>
+        </div>
+        <div class="c01-bottom">
+          <div class="c01-handle">@safeout_dates_bot</div>
+          <div class="c01-shield">🛡</div>
+        </div>
+      </div>
+      <div class="size-note"><b>01</b> Вводная · RU</div>
+    </div>
+
+    <!-- Card 02 — How it works -->
+    <div>
+      <div class="card sq c02">
+        <div class="c02-head">Как это работает</div>
+        <div class="c02-steps">
+          <div class="c02-step">
+            <div class="c02-n">01</div>
+            <div class="c02-step-body">
+              <div class="c02-step-title">Сохраните данные о человеке</div>
+              <div class="c02-step-desc">Имя, ник, ссылка на профиль, место встречи, фото, машина — всё в одном месте.</div>
+            </div>
+          </div>
+          <div class="c02-step">
+            <div class="c02-n">02</div>
+            <div class="c02-step-body">
+              <div class="c02-step-title">Начните свидание — /newdate</div>
+              <div class="c02-step-desc">Каждые 15 минут бот спрашивает «как вы?». Всё хорошо — нажмите кнопку.</div>
+            </div>
+          </div>
+          <div class="c02-step">
+            <div class="c02-n">03</div>
+            <div class="c02-step-body">
+              <div class="c02-step-title">Нет ответа — тревога</div>
+              <div class="c02-step-desc">Бот сам напишет доверенным контактам со всеми данными и последней геолокацией.</div>
+            </div>
+          </div>
+        </div>
+        <div class="c02-foot">
+          <span class="c02-foot-bot">@safeout_dates_bot</span>
+          <span>RU · EN · TR · бесплатно</span>
+        </div>
+      </div>
+      <div class="size-note"><b>02</b> Как работает</div>
+    </div>
+
+    <!-- Card 03 — SOS -->
+    <div>
+      <div class="card sq c03 dotgrid">
+        <div class="c03-glow"></div>
+        <div class="c03-ring">
+          <div class="c03-sos">SOS</div>
+        </div>
+        <div class="c03-title">Немедленная тревога в одно нажатие</div>
+        <div class="c03-desc">Кнопка SOS есть в каждом сообщении во время свидания. Нажали — контакты получают оповещение сразу, не дожидаясь проверки.</div>
+        <div class="c03-tag">Без ожидания · Без объяснений</div>
+        <div class="c03-handle">@safeout_dates_bot</div>
+      </div>
+      <div class="size-note"><b>03</b> SOS-механика</div>
+    </div>
+
+    <!-- Card 07 — VK timeline -->
+    <div>
+      <div class="card sq c07">
+        <div class="c07-accent-bar"></div>
+        <div class="c07-top">
+          <div class="c07-kicker">Что происходит, если вы не ответили</div>
+          <div class="c07-headline">Бот<br>сработает<br>за вас</div>
+          <div class="c07-scenario">
+            <div class="c07-scenario-label">Хронология тревоги</div>
+            <div class="c07-timeline">
+              <div class="c07-tick">
+                <div class="c07-time">T + 0</div>
+                <div class="c07-event">Бот присылает проверку — <strong>нет ответа</strong></div>
+              </div>
+              <div class="c07-tick">
+                <div class="c07-time">T + 15 мин</div>
+                <div class="c07-event"><strong>Сам пишет контактам</strong> — данные, геолокация, ссылка</div>
+              </div>
+              <div class="c07-tick">
+                <div class="c07-time">SOS</div>
+                <div class="c07-event"><strong>Мгновенно</strong> — кнопка в каждом сообщении</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="c07-bot">
+          <span>@safeout_dates_bot</span>
+          <span>RU · EN · TR</span>
+        </div>
+      </div>
+      <div class="size-note"><b>04</b> Хронология тревоги · VK</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── VERTICAL 9:16 ── -->
+<div class="section">
+  <div class="section-label">Вертикаль 9:16 · 1080×1920 · Stories Instagram / VK / Telegram</div>
+  <div class="card-row">
+
+    <!-- Card 04 — Chat story -->
+    <div>
+      <div class="card vt c04">
+        <!-- Hero header -->
+        <div class="c04-hero dotgrid">
+          <div class="c04-hero-badge">
+            <div class="c04-hero-shield">🛡</div>
+            <div class="c04-hero-name">SafeOut</div>
+          </div>
+          <div class="c04-label">Каждые<br>15 минут —<br><em>«как вы?»</em></div>
+          <div class="c04-hero-sub">Бот проверяет тебя во время свидания и поднимает тревогу, если ты не отвечаешь</div>
+        </div>
+        <!-- Body -->
+        <div class="c04-body">
+          <div class="c04-title">Так выглядит проверка в Telegram</div>
+          <div class="c04-chat">
+            <div class="c04-msg bot">
+              <div class="c04-avatar">🛡</div>
+              <div class="c04-bubble">
+                Проверка № 3 · 21:45<br>Как вы? Всё по плану?
+                <div class="c04-btns">
+                  <span class="c04-btn ok">Всё хорошо</span>
+                  <span class="c04-btn warn">Есть проблема</span>
+                  <span class="c04-btn sos">SOS</span>
+                </div>
+              </div>
+            </div>
+            <div class="c04-msg user">
+              <div class="c04-avatar">👤</div>
+              <div class="c04-bubble">Всё хорошо</div>
+            </div>
+            <div class="c04-msg bot">
+              <div class="c04-avatar">🛡</div>
+              <div class="c04-bubble">Отлично. Следующая проверка в 22:00.</div>
+            </div>
+            <div class="c04-note">Если ответа нет — через 15 мин бот пишет вашим контактам</div>
+          </div>
+        </div>
+        <div class="c04-foot">
+          <span>@safeout_dates_bot</span>
+          <span>RU · EN · TR · бесплатно</span>
+        </div>
+      </div>
+      <div class="size-note"><b>05</b> Чат-демо · Story</div>
+    </div>
+
+    <!-- Card 05 — For contact story -->
+    <div>
+      <div class="card vt c05">
+        <div class="c05-stripe"></div>
+        <!-- Hero header -->
+        <div class="c05-hero">
+          <div class="c05-hero-badge">
+            <div class="c05-hero-icon">🔔</div>
+            <div class="c05-hero-name">SafeOut · для контактов</div>
+          </div>
+          <div class="c05-hero-title">Тебя добавили<br>как <em>доверенный</em><br>контакт</div>
+          <div class="c05-hero-sub">Если подруга не ответит на проверку — бот напишет тебе первой</div>
+        </div>
+        <!-- Body -->
+        <div class="c05-body">
+          <div class="c05-top">
+            <div class="c05-eyebrow">Что нужно сделать один раз</div>
+            <div class="c05-items">
+              <div class="c05-item">
+                <div class="c05-item-icon">🔗</div>
+                <div class="c05-item-body">
+                  <div class="c05-item-title">Перейди по ссылке-приглашению</div>
+                  <div class="c05-item-desc">Telegram не разрешает боту писать тем, кто сам его не запускал.</div>
+                </div>
+              </div>
+              <div class="c05-item">
+                <div class="c05-item-icon">▶</div>
+                <div class="c05-item-body">
+                  <div class="c05-item-title">Нажми Start</div>
+                  <div class="c05-item-desc">Готово. Если она не ответит — бот пришлёт тебе всё: имя, место, машину, геолокацию.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="c05-bot">
+            <span>@safeout_dates_bot</span>
+            <span class="c05-bot-url">бесплатно · RU · EN · TR</span>
+          </div>
+        </div>
+      </div>
+      <div class="size-note"><b>06</b> Для контакта · Story</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── LINKEDIN 1.91:1 ── -->
+<div class="section">
+  <div class="section-label">Горизонталь 1.91:1 · 1200×628 · LinkedIn / VK обложка</div>
+  <div class="card-row">
+
+    <div>
+      <div class="card lk c06">
+        <div class="c06-left">
+          <div class="c06-label">Telegram-бот безопасности</div>
+          <div class="c06-title">SafeOut —<br>бот,<br>который<br><em>не забудет</em></div>
+          <div class="c06-sub">Для свиданий с людьми из интернета. Бесплатно. RU · EN · TR.</div>
+          <div class="c06-handle">@safeout_dates_bot</div>
+        </div>
+        <div class="c06-right">
+          <div>
+            <div class="c06-right-label">Что умеет бот</div>
+            <div class="c06-points">
+              <div class="c06-point">
+                <div class="c06-point-dot"></div>
+                <div class="c06-point-text"><strong>Хранит данные о свидании</strong> — имя, место, машина, фото, скрины переписки</div>
+              </div>
+              <div class="c06-point">
+                <div class="c06-point-dot"></div>
+                <div class="c06-point-text"><strong>Проверяет каждые 15 минут</strong> — три кнопки: всё хорошо / проблема / SOS</div>
+              </div>
+              <div class="c06-point">
+                <div class="c06-point-dot"></div>
+                <div class="c06-point-text"><strong>Нет ответа — сам пишет контактам</strong> со всеми данными и геолокацией</div>
+              </div>
+              <div class="c06-point">
+                <div class="c06-point-dot"></div>
+                <div class="c06-point-text"><strong>SOS — немедленно,</strong> без ожидания проверки</div>
+              </div>
+            </div>
+          </div>
+          <div class="c06-foot">
+            <span>reprintseva.pro/portfolio/bots/safeout/</span>
+            <span>github.com/Julia-Reprintseva/safeout</span>
+          </div>
+        </div>
+      </div>
+      <div class="size-note"><b>07</b> LinkedIn / VK обложка</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

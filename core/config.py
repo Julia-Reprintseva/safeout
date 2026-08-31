@@ -22,8 +22,7 @@ class Settings(BaseSettings):
     app_base_url: str = "https://safeout.app"
     secret_key: str = "change_me"
 
-    wallet_pay_api_key: str = ""
-    wallet_pay_webhook_secret: str = ""
+    cryptobot_token: str = ""
     free_sessions_limit: int = 3
 
     admin_id: int = 0  # set ADMIN_ID in .env to your Telegram user_id

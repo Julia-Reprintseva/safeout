@@ -25,7 +25,16 @@ _TEXTS = {
         ),
         "yes": "🗑 Да, удалить всё",
         "no": "← Отмена",
-        "done": "✅ Готово. Все данные о свиданиях удалены.",
+        "done": (
+            "✅ Готово. Из базы данных удалены:\n"
+            "— все твои свидания и их детали\n"
+            "— прикреплённые файлы и фото\n"
+            "— ссылки для доверенных контактов\n\n"
+            "Доверенные контакты остались — их можно удалить через /contacts.\n\n"
+            "Переписку в этом чате бот удалить не может. "
+            "Чтобы стереть её: удали чат в Telegram — "
+            "при следующем сообщении он откроется как пустой."
+        ),
         "cancelled": "Отменено.",
     },
     "en": {
@@ -37,7 +46,11 @@ _TEXTS = {
         ),
         "yes": "🗑 Yes, delete everything",
         "no": "← Cancel",
-        "done": "✅ Done. All date data has been deleted.",
+        "done": (
+            "✅ Done. All date data has been deleted from the database.\n\n"
+            "To erase the chat history too: delete this chat in Telegram — "
+            "it will reopen as empty when you message next."
+        ),
         "cancelled": "Cancelled.",
     },
     "tr": {
@@ -49,7 +62,11 @@ _TEXTS = {
         ),
         "yes": "🗑 Evet, hepsini sil",
         "no": "← İptal",
-        "done": "✅ Tamam. Tüm buluşma verileri silindi.",
+        "done": (
+            "✅ Tamam. Tüm buluşma verileri veritabanından silindi.\n\n"
+            "Sohbet geçmişini de silmek için: Telegram'da bu sohbeti sil — "
+            "bir sonraki mesajda boş olarak yeniden açılacak."
+        ),
         "cancelled": "İptal edildi.",
     },
 }
