@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 async def on_startup(bot: Bot):
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_my_commands([
+        BotCommand(command="start",     description="Начать / перезапустить"),
         BotCommand(command="newdate",   description="Создать новое свидание"),
         BotCommand(command="contacts",  description="Доверенные контакты"),
         BotCommand(command="clear",     description="Удалить данные о свиданиях"),
@@ -34,6 +35,7 @@ async def on_startup(bot: Bot):
         from aiogram.types import BotCommandScopeChat
         await bot.set_my_commands(
             [
+                BotCommand(command="start",    description="Начать / перезапустить"),
                 BotCommand(command="newdate",  description="Создать новое свидание"),
                 BotCommand(command="contacts", description="Доверенные контакты"),
                 BotCommand(command="clear",    description="Удалить данные о свиданиях"),

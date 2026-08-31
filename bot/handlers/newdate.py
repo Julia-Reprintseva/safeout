@@ -580,34 +580,75 @@ async def tubik_delete(callback: CallbackQuery, db: AsyncSession, lang: str):
     await callback.answer()
 
 
+STARS_PRICE = 550  # ≈ $7 at Telegram's rate
+
+
 async def _show_paywall(message, lang: str):
     from core.crypto_pay import PRICE_USDT
     from aiogram.utils.keyboard import InlineKeyboardBuilder
     text = {
         "ru": (
             f"🔒 У тебя закончились бесплатные свидания.\n\n"
-            f"SafeOut Premium — <b>{PRICE_USDT} USDT/месяц</b>\n"
-            f"✓ Безлимитные свидания\n"
-            f"✓ Все функции без ограничений\n\n"
-            f"Оплата через @CryptoBot (USDT)"
+            f"<b>SafeOut Premium</b> — безлимитные свидания\n\n"
+            f"Выбери способ оплаты:"
         ),
         "en": (
             f"🔒 You've used all your free dates.\n\n"
-            f"SafeOut Premium — <b>{PRICE_USDT} USDT/month</b>\n"
-            f"✓ Unlimited dates\n"
-            f"✓ All features\n\n"
-            f"Pay via @CryptoBot (USDT)"
+            f"<b>SafeOut Premium</b> — unlimited dates\n\n"
+            f"Choose how to pay:"
         ),
-    }.get(lang, f"🔒 Free dates used up.\n\nPremium — {PRICE_USDT} USDT/month")
+        "tr": (
+            f"🔒 Ücretsiz buluşmalarını kullandın.\n\n"
+            f"<b>SafeOut Premium</b> — sınırsız buluşma\n\n"
+            f"Ödeme yöntemini seç:"
+        ),
+    }.get(lang, f"🔒 Free dates used up. Choose payment method:")
 
     builder = InlineKeyboardBuilder()
-    builder.button(text=f"💳 Оплатить {PRICE_USDT} USDT", callback_data="pay:crypto")
+    builder.button(text=f"⭐ {STARS_PRICE} Stars (карта / Apple Pay)", callback_data="pay:stars")
+    builder.button(text=f"💎 {PRICE_USDT} USDT (крипта)", callback_data="pay:crypto")
+    builder.adjust(1)
     await message.answer(text, reply_markup=builder.as_markup())
+
+
+@router.callback_query(F.data == "pay:stars")
+async def pay_stars(callback: CallbackQuery, lang: str):
+    from aiogram.types import LabeledPrice
+    await callback.answer()
+    title = {"ru": "SafeOut Premium — 1 месяц", "en": "SafeOut Premium — 1 month"}.get(lang, "SafeOut Premium")
+    description = {
+        "ru": "Безлимитные свидания под защитой SafeOut",
+        "en": "Unlimited dates protected by SafeOut",
+    }.get(lang, "Unlimited dates")
+    await callback.message.answer_invoice(
+        title=title,
+        description=description,
+        payload=f"premium_{callback.from_user.id}",
+        currency="XTR",
+        prices=[LabeledPrice(label="SafeOut Premium", amount=STARS_PRICE)],
+    )
+
+
+@router.pre_checkout_query()
+async def pre_checkout(query):
+    await query.answer(ok=True)
+
+
+@router.message(F.successful_payment)
+async def payment_success(message: Message, db):
+    from core.models import User
+    user_obj = await db.get(User, message.from_user.id)
+    if user_obj:
+        user_obj.is_premium = True
+        await db.commit()
+    await message.answer(
+        "✅ Оплата прошла! Теперь у тебя SafeOut Premium. Нажми /newdate чтобы начать свидание."
+    )
 
 
 @router.callback_query(F.data == "pay:crypto")
 async def pay_crypto(callback: CallbackQuery, lang: str):
-    from core.crypto_pay import create_invoice
+    from core.crypto_pay import create_invoice, PRICE_USDT
     from aiogram.utils.keyboard import InlineKeyboardBuilder
     await callback.answer()
     invoice = await create_invoice(callback.from_user.id)
@@ -615,7 +656,7 @@ async def pay_crypto(callback: CallbackQuery, lang: str):
         await callback.message.answer("⚠️ Не удалось создать счёт. Попробуй позже.")
         return
     builder = InlineKeyboardBuilder()
-    builder.button(text="💳 Оплатить в CryptoBot", url=invoice["pay_url"])
+    builder.button(text=f"💎 Оплатить {PRICE_USDT} USDT", url=invoice["pay_url"])
     text = {
         "ru": "Нажми кнопку ниже — откроется @CryptoBot для оплаты. После оплаты напиши /newdate.",
         "en": "Tap the button below to pay in @CryptoBot. After payment, type /newdate.",
