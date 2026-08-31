@@ -140,7 +140,8 @@ async def cmd_newdate(message: Message, state: FSMContext, db: AsyncSession, lan
     from core.models import User
     from core.config import settings as cfg
     user_obj = await db.get(User, message.from_user.id)
-    if user_obj and not user_obj.is_premium and user_obj.sessions_used >= cfg.free_sessions_limit:
+    is_admin = message.from_user.id == cfg.admin_id
+    if user_obj and not user_obj.is_premium and not is_admin and user_obj.sessions_used >= cfg.free_sessions_limit:
         await _show_paywall(message, lang)
         return
 

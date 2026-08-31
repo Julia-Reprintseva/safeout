@@ -13,7 +13,7 @@ from core.models import Base
 from bot.middlewares.db import DbMiddleware
 from bot.middlewares.i18n import I18nMiddleware
 from bot.middlewares.fsm_reset import FsmResetOnCommandMiddleware
-from bot.handlers import start, contacts, newdate, checklist, status_check, clear, stats, fallback
+from bot.handlers import start, contacts, newdate, checklist, status_check, clear, stats, fallback, admin
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,6 +29,23 @@ async def on_startup(bot: Bot):
         BotCommand(command="tubiki",    description="Моя коллекция тюбиков 🙈"),
         BotCommand(command="help",      description="Помощь"),
     ])
+    # Admin-only commands (only visible to admin in their menu)
+    if settings.admin_id:
+        from aiogram.types import BotCommandScopeChat
+        await bot.set_my_commands(
+            [
+                BotCommand(command="newdate",  description="Создать новое свидание"),
+                BotCommand(command="contacts", description="Доверенные контакты"),
+                BotCommand(command="clear",    description="Удалить данные о свиданиях"),
+                BotCommand(command="language", description="Сменить язык"),
+                BotCommand(command="tubiki",   description="Моя коллекция тюбиков 🙈"),
+                BotCommand(command="help",     description="Помощь"),
+                BotCommand(command="gift",     description="[admin] Выдать Premium"),
+                BotCommand(command="revoke",   description="[admin] Отозвать Premium"),
+                BotCommand(command="users",    description="[admin] Список пользователей"),
+            ],
+            scope=BotCommandScopeChat(chat_id=settings.admin_id),
+        )
     logger.info("SafeOut bot started")
 
 
@@ -90,6 +107,7 @@ async def main():
     dp.update.middleware(I18nMiddleware())
     dp.update.middleware(FsmResetOnCommandMiddleware())
 
+    dp.include_router(admin.router)
     dp.include_router(start.router)
     dp.include_router(contacts.router)
     dp.include_router(newdate.router)
