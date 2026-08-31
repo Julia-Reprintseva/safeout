@@ -10,6 +10,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "Перед свиданием сохраню всё: имя, место, машину. "
             "Каждые 15 минут буду спрашивать как ты. "
             "Если не ответишь — напишу доверенным контактам.\n\n"
+            "🆓 Первые 3 свидания бесплатно.\n"
+            "💳 Дальше — 7 USDT/месяц через @CryptoBot.\n\n"
             "/newdate — создать свидание\n"
             "/contacts — доверенные контакты\n"
             "/tubiki — моя коллекция тюбиков 🙈\n"
@@ -117,9 +119,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         "welcome": (
             "👋 Hi! I'm SafeOut — a safety bot for dates with strangers.\n\n"
-            "Before your date, I'll help you save all info about the person and meeting place. "
-            "If you go silent — I'll alert the trusted contacts who've connected with me on Telegram.\n\n"
-            "Commands:\n"
+            "Before your date, I'll save all info: name, place, car. "
+            "Every 15 minutes I'll check in with you. "
+            "If you go silent — I'll alert your trusted contacts.\n\n"
+            "🆓 First 3 dates are free.\n"
+            "💳 Then — 7 USDT/month via @CryptoBot.\n\n"
             "/newdate — create a new date\n"
             "/contacts — manage trusted contacts\n"
             "/language — change language\n"
@@ -225,9 +229,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "tr": {
         "welcome": (
             "👋 Merhaba! Ben SafeOut — yabancılarla buluşmalar için güvenlik botuyum.\n\n"
-            "Buluşmadan önce, kişi ve buluşma yeri hakkındaki tüm bilgileri kaydetmene yardımcı olacağım. "
-            "Eğer haber vermezsen — Telegram'da benimle bağlantı kurmuş güvenilen kişileri uyaracağım.\n\n"
-            "Komutlar:\n"
+            "Buluşmadan önce her şeyi kaydederim: isim, yer, araba. "
+            "Her 15 dakikada bir seni kontrol ederim. "
+            "Cevap vermezsen — güvenilen kişileri uyarırım.\n\n"
+            "🆓 İlk 3 buluşma ücretsiz.\n"
+            "💳 Sonrası — @CryptoBot ile ayda 7 USDT.\n\n"
             "/newdate — yeni bir buluşma oluştur\n"
             "/contacts — güvenilen kişileri yönet\n"
             "/language — dil değiştir\n"
