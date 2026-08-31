@@ -57,6 +57,16 @@ async def main():
                 "ALTER TABLE date_sessions ADD COLUMN IF NOT EXISTS notes TEXT"
             )
         )
+        await conn.execute(
+            __import__("sqlalchemy").text(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+        )
+        await conn.execute(
+            __import__("sqlalchemy").text(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS sessions_used INTEGER NOT NULL DEFAULT 0"
+            )
+        )
         await conn.execute(__import__("sqlalchemy").text("""
             CREATE TABLE IF NOT EXISTS tubiks (
                 id SERIAL PRIMARY KEY,

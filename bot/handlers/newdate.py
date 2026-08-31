@@ -136,6 +136,14 @@ async def cmd_newdate(message: Message, state: FSMContext, db: AsyncSession, lan
         await message.answer(t("already_active", lang), reply_markup=active_session_kb(lang, active_session.id))
         return
 
+    # Paywall check
+    from core.models import User
+    from core.config import settings as cfg
+    user_obj = await db.get(User, message.from_user.id)
+    if user_obj and not user_obj.is_premium and user_obj.sessions_used >= cfg.free_sessions_limit:
+        await _show_paywall(message, lang)
+        return
+
     # Warn if no contacts
     result = await db.execute(
         select(TrustedContact).where(TrustedContact.user_id == message.from_user.id)
@@ -328,6 +336,13 @@ async def start_session(callback: CallbackQuery, db: AsyncSession, lang: str):
 
     session_obj.status = SessionStatus.ACTIVE
     session_obj.started_at = datetime.utcnow()
+
+    # Increment free sessions counter
+    from core.models import User
+    user_obj = await db.get(User, callback.from_user.id)
+    if user_obj:
+        user_obj.sessions_used = (user_obj.sessions_used or 0) + 1
+
     await db.commit()
 
     # Schedule first ping; ping_user itself arms the L1 escalation timer
@@ -562,3 +577,46 @@ async def tubik_delete(callback: CallbackQuery, db: AsyncSession, lang: str):
         await db.commit()
         await callback.message.delete()
     await callback.answer()
+
+
+async def _show_paywall(message, lang: str):
+    from core.wallet_pay import PRICE_USDT
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    text = {
+        "ru": (
+            f"🔒 У тебя закончились бесплатные свидания.\n\n"
+            f"SafeOut Premium — <b>{PRICE_USDT} USDT/месяц</b>\n"
+            f"✓ Безлимитные свидания\n"
+            f"✓ Все функции без ограничений\n\n"
+            f"Оплата через Telegram Wallet (USDT)"
+        ),
+        "en": (
+            f"🔒 You've used all your free dates.\n\n"
+            f"SafeOut Premium — <b>{PRICE_USDT} USDT/month</b>\n"
+            f"✓ Unlimited dates\n"
+            f"✓ All features\n\n"
+            f"Pay via Telegram Wallet (USDT)"
+        ),
+    }.get(lang, f"🔒 Free dates used up.\n\nPremium — {PRICE_USDT} USDT/month")
+
+    builder = InlineKeyboardBuilder()
+    builder.button(text=f"💳 Оплатить {PRICE_USDT} USDT", callback_data="pay:wallet")
+    await message.answer(text, reply_markup=builder.as_markup())
+
+
+@router.callback_query(F.data == "pay:wallet")
+async def pay_wallet(callback: CallbackQuery, lang: str):
+    from core.wallet_pay import create_order
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    await callback.answer()
+    order = await create_order(callback.from_user.id)
+    if not order:
+        await callback.message.answer("⚠️ Не удалось создать счёт. Попробуй позже.")
+        return
+    builder = InlineKeyboardBuilder()
+    builder.button(text="💳 Оплатить в Wallet", url=order["payLink"])
+    text = {
+        "ru": "Нажми кнопку ниже — откроется @wallet для оплаты. После оплаты напиши /newdate.",
+        "en": "Tap the button below to pay in @wallet. After payment, type /newdate.",
+    }.get(lang, "Tap below to pay.")
+    await callback.message.answer(text, reply_markup=builder.as_markup())

@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import async_session_factory
-from core.models import DateSession, SessionFile, FileType, Escalation, EscalationStatus
+from core.models import DateSession, SessionFile, FileType, Escalation, EscalationStatus, User
 from core.config import settings
 
 app = FastAPI(docs_url=None, redoc_url=None)
@@ -133,4 +133,46 @@ async def acknowledge_alert(token: str):
             e.acknowledged_at = datetime.now(timezone.utc)
 
         await db.commit()
+    return {"ok": True}
+
+
+@app.post("/webhook/wallet-pay")
+async def wallet_pay_webhook(request: Request):
+    """Receive payment confirmation from Wallet Pay."""
+    from core.wallet_pay import verify_webhook
+    body = await request.body()
+    signature = request.headers.get("Walletpay-Signature", "")
+    if not verify_webhook(body, signature):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    data = await request.json()
+    # Wallet Pay sends list of order updates
+    for event in (data if isinstance(data, list) else [data]):
+        if event.get("status") != "PAID":
+            continue
+        external_id = event.get("externalId", "")
+        # externalId format: "premium_{telegram_id}_{timestamp}"
+        parts = external_id.split("_")
+        if len(parts) >= 2 and parts[0] == "premium":
+            try:
+                telegram_id = int(parts[1])
+            except ValueError:
+                continue
+            async with async_session_factory() as db:
+                user = await db.get(User, telegram_id)
+                if user:
+                    user.is_premium = True
+                    await db.commit()
+                    # Notify user in Telegram
+                    try:
+                        from aiogram import Bot
+                        from core.config import settings as cfg
+                        bot = Bot(token=cfg.bot_token)
+                        await bot.send_message(
+                            chat_id=telegram_id,
+                            text="✅ Оплата получена! Теперь у тебя SafeOut Premium. Нажми /newdate чтобы начать свидание.",
+                        )
+                        await bot.session.close()
+                    except Exception:
+                        pass
     return {"ok": True}
